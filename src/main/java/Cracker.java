@@ -9,6 +9,12 @@ public class Cracker {
                 + "██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗\n"
                 + "╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║\n"
                 + " ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝\n";
+        System.out.println("____________________________________________________________");
         System.out.print(banner);
+        System.out.println("Hello! I'm Cracker.");
+        System.out.println("What can I do for you?");
+        System.out.println("____________________________________________________________");
+        System.out.println("Bye. Hope to see you again soon!");
+        System.out.println("____________________________________________________________");
     }
 }

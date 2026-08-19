@@ -1,10 +1,17 @@
-# Duke User Guide
-
-// Update the title above to match the actual product name
+# Cracker User Guide
 
 // Product screenshot goes here
 
-// Product intro goes here
+Cracker is a command-line chatbot. Running `Cracker.main()` currently displays the following banner:
+
+```
+ ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
+██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝
+██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
+╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+```
 
 ## Adding deadlines
 

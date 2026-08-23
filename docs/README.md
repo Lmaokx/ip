@@ -2,7 +2,7 @@
 
 // Product screenshot goes here
 
-Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner, greets the user, and exits:
+Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting, then responds to each command. Enter `bye` to exit:
 
 ```
 ____________________________________________________________
@@ -15,7 +15,11 @@ ____________________________________________________________
 Hello! I'm Cracker.
 What can I do for you?
 ____________________________________________________________
-Bye. Hope to see you again soon!
+list
+ What do you mean by list?
+____________________________________________________________
+bye
+ Bye. Don't understand a single thing.
 ____________________________________________________________
 ```
 

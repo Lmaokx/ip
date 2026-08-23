@@ -4,6 +4,9 @@ import java.util.Scanner;
  * Entry point for the Cracker chatbot application.
  */
 public class Cracker {
+    /** Maximum number of tasks stored during one run of the application. */
+    private static final int MAX_TASKS = 100;
+
     /**
      * Starts the chatbot, responding to commands until the user enters {@code bye}.
      *
@@ -22,17 +25,28 @@ public class Cracker {
         System.out.println("What can I do for you?");
         System.out.println("____________________________________________________________");
 
+        String[] tasks = new String[MAX_TASKS];
+        int taskCount = 0;
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
             if (command.equals("bye")) {
                 break;
             }
-            System.out.println(" What do you mean by " + command + "?");
+
+            if (command.equals("list")) {
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                }
+            } else if (taskCount < MAX_TASKS) {
+                tasks[taskCount] = command;
+                taskCount++;
+                System.out.println(" added: " + command);
+            }
             System.out.println("____________________________________________________________");
         }
 
-        System.out.println(" Bye. Don't understand a single thing.");
+        System.out.println(" Bye. Hope to see you again soon!");
         System.out.println("____________________________________________________________");
         scanner.close();
     }

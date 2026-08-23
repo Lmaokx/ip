@@ -13,7 +13,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you can enter commands and exit by entering `bye`:
+1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, enter a task to add it, use `list` to show all tasks, and enter `bye` to exit:
    ```
    ____________________________________________________________
     ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
@@ -25,12 +25,21 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    Hello! I'm Cracker.
    What can I do for you?
    ____________________________________________________________
+   read book
+    added: read book
+   ____________________________________________________________
+   return book
+    added: return book
+   ____________________________________________________________
    list
-    What do you mean by list?
+    1. read book
+    2. return book
    ____________________________________________________________
    bye
-    Bye. Don't understand a single thing.
+    Bye. Hope to see you again soon!
    ____________________________________________________________
    ```
+
+Cracker keeps up to 100 tasks in memory while it is running. The tasks are not saved after the program exits.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.

@@ -2,7 +2,7 @@
 
 // Product screenshot goes here
 
-Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Enter any task text to add it, enter `list` to display the saved tasks, enter `mark TASK_NUMBER` to mark a task as done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.
+Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Enter any task text to add it, enter `list` to display the saved tasks, enter `mark TASK_NUMBER` to mark a task as done, enter `unmark TASK_NUMBER` to mark a task as not done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.
 
 ```
 ____________________________________________________________
@@ -30,6 +30,10 @@ mark 2
  Nice! I've marked this task as done:
    [X] return book
 ____________________________________________________________
+unmark 2
+ OK, I've marked this task as not done yet:
+   [ ] return book
+____________________________________________________________
 bye
  Bye. Hope to see you again soon!
 ____________________________________________________________
@@ -52,6 +56,10 @@ Enter `list` to display every task that has been added during the current run, n
 ## Marking tasks as done
 
 Enter `mark TASK_NUMBER` to mark the numbered task as done. For example, `mark 2` marks the second task in the list.
+
+## Marking tasks as not done
+
+Enter `unmark TASK_NUMBER` to reverse a task's done status. For example, `unmark 2` marks the second task as not done.
 
 ## Exiting
 

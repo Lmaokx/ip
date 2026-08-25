@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ip: f80490c...c062737</title>
+<style>
+:root {
+  --fg: #1f2328; --muted: #656d76; --border: #d1d9e0; --bg: #ffffff;
+  --bg-soft: #f6f8fa; --accent: #0969da;
+  --del-bg: #ffebe9; --del-strong: #ffc9c4; --del-num: #ffd8d3;
+  --add-bg: #e6ffec; --add-strong: #abf2bc; --add-num: #ccffd8;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-soft); color: var(--fg);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1600px; margin: 0 auto; padding: 0 16px 80px; }
+
+header.page { padding: 24px 0 12px; }
+header.page h1 { font-size: 20px; margin: 0 0 12px; }
+.revs { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+.rev {
+  flex: 1 1 320px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+}
+.rev .label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.rev .sha { font-family: var(--mono); font-weight: 600; }
+.rev .subject { color: var(--muted); overflow-wrap: anywhere; }
+.summary { margin: 14px 0 4px; color: var(--muted); }
+.summary strong { color: var(--fg); }
+.add-count { color: #1a7f37; font-weight: 600; }
+.del-count { color: #cf222e; font-weight: 600; }
+
+.toolbar {
+  position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; align-items: center;
+  flex-wrap: wrap; padding: 10px 0; background: var(--bg-soft);
+  border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.toolbar input[type=search] {
+  flex: 1 1 220px; min-width: 160px; padding: 5px 10px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg);
+}
+button {
+  font: inherit; font-size: 13px; padding: 5px 10px; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg);
+}
+button:hover { background: var(--bg-soft); }
+
+.index { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; }
+.index > summary { cursor: pointer; padding: 10px 14px; font-weight: 600; }
+.index ol { margin: 0; padding: 0 14px 12px 14px; list-style: none; }
+.index li { display: flex; gap: 10px; padding: 2px 0; align-items: baseline; }
+.index .path { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.index .counts { margin-left: auto; font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+
+.file { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; }
+.file[hidden] { display: none; }
+.file > summary {
+  position: sticky; top: 47px; z-index: 10; cursor: pointer; list-style: none;
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 8px 12px; background: var(--bg-soft);
+  border-bottom: 1px solid var(--border); border-radius: 6px 6px 0 0;
+}
+.file:not([open]) > summary { border-bottom: none; border-radius: 6px; }
+.file > summary::-webkit-details-marker { display: none; }
+.file > summary::before { content: "\25be"; color: var(--muted); width: 10px; }
+.file:not([open]) > summary::before { content: "\25b8"; }
+.file .name { font-family: var(--mono); font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
+.file .from { color: var(--muted); font-weight: 400; }
+.badge {
+  font-size: 11px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--muted); background: var(--bg);
+}
+.badge.added { color: #1a7f37; border-color: #aceebb; background: var(--add-bg); }
+.badge.deleted { color: #cf222e; border-color: #ffcecb; background: var(--del-bg); }
+.badge.renamed, .badge.copied { color: #9a6700; border-color: #f5d5a3; background: #fff8c5; }
+.file .counts { margin-left: auto; font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.note { padding: 14px; color: var(--muted); font-style: italic; }
+
+.diff-wrap { overflow-x: auto; }
+table.diff { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--mono); font-size: 12px; }
+table.diff col.num { width: 50px; }
+table.diff col.code { width: calc(50% - 50px); }
+table.diff.single col.code { width: calc(100% - 50px); }
+td.num {
+  text-align: right; padding: 0 8px; color: var(--muted); background: var(--bg-soft);
+  border-right: 1px solid var(--border); user-select: none; vertical-align: top;
+  white-space: nowrap; width: 50px;
+}
+td.code {
+  padding: 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; vertical-align: top; tab-size: 4;
+}
+td.code.side-old { border-right: 1px solid var(--border); }
+tr.del td.code, tr.rep td.code.side-old { background: var(--del-bg); }
+tr.del td.num.old, tr.rep td.num.old { background: var(--del-num); }
+tr.ins td.code, tr.rep td.code.side-new { background: var(--add-bg); }
+tr.ins td.num.new, tr.rep td.num.new { background: var(--add-num); }
+table.diff td.code.blank {
+  background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 6px, #f0f2f4 6px, #f0f2f4 12px);
+}
+mark.word { padding: 0; border-radius: 2px; }
+td.code.side-old mark.word { background: var(--del-strong); }
+td.code.side-new mark.word { background: var(--add-strong); }
+tr.fold td { padding: 0; background: #eef3f9; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+tr.fold button {
+  width: 100%; text-align: left; border: 0; border-radius: 0; background: transparent;
+  color: var(--accent); font-family: var(--mono); font-size: 12px; padding: 4px 12px;
+}
+.pending { padding: 14px; color: var(--muted); }
+
+.hljs-comment, .hljs-quote { color: #6a737d; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-doctag, .hljs-formula { color: #cf222e; }
+.hljs-string, .hljs-regexp, .hljs-addition, .hljs-attribute, .hljs-meta .hljs-string { color: #0a3069; }
+.hljs-number, .hljs-literal, .hljs-variable, .hljs-template-variable, .hljs-tag .hljs-attr { color: #0550ae; }
+.hljs-title, .hljs-section, .hljs-title.class_, .hljs-title.function_, .hljs-name { color: #8250df; }
+.hljs-built_in, .hljs-type, .hljs-symbol, .hljs-bullet, .hljs-selector-id, .hljs-selector-class { color: #953800; }
+.hljs-meta, .hljs-attr, .hljs-params { color: #116329; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+.hljs-deletion { color: #82071e; }
+
+@media print {
+  .toolbar, .index { display: none; }
+  .file, .rev { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="page">
+  <h1>Comparing f80490c…c062737
+      in <code>ip</code></h1>
+  <div class="revs"><div class="rev"><div class="label">Base (before)</div><div><span class="sha">f80490c</span> <span class="subject">HEAD^</span></div><div class="subject">Add in-memory task list support</div><div class="subject">Lmaokx · 2026-08-23</div></div><div class="rev"><div class="label">Compare (after)</div><div><span class="sha">c062737</span> <span class="subject">HEAD</span></div><div class="subject">Add task completion marking</div><div class="subject">Lmaokx · 2026-08-25</div></div></div>
+  <p class="summary"><strong>3</strong> changed
+     files with
+     <span class="add-count">40 additions</span> and
+     <span class="del-count">8 deletions</span>.</p>
+  
+</header>
+<div class="toolbar">
+  <input id="filter" type="search" placeholder="Filter files by path…" autocomplete="off">
+  <button id="expand-all" type="button">Expand all</button>
+  <button id="collapse-all" type="button">Collapse all</button>
+</div>
+<details class="index" open><summary>3 changed files</summary><ol><li data-path="README.md"><span class="badge modified">modified</span><a class="path" href="#file-0">README.md</a><span class="counts"><span class="add-count">+8</span> <span class="del-count">−3</span></span></li><li data-path="docs/README.md"><span class="badge modified">modified</span><a class="path" href="#file-1">docs/README.md</a><span class="counts"><span class="add-count">+13</span> <span class="del-count">−4</span></span></li><li data-path="src/main/java/Cracker.java"><span class="badge modified">modified</span><a class="path" href="#file-2">src/main/java/Cracker.java</a><span class="counts"><span class="add-count">+19</span> <span class="del-count">−1</span></span></li></ol></details>
+<details class="file" id="file-0" data-index="0" data-path="README.md" open><summary><span class="badge modified">modified</span><span class="name">README.md</span><span class="counts"><span class="add-count">+8</span> <span class="del-count">−3</span></span></summary><div class="slot"><div class="pending">Loading…</div></div></details><details class="file" id="file-1" data-index="1" data-path="docs/README.md" open><summary><span class="badge modified">modified</span><span class="name">docs/README.md</span><span class="counts"><span class="add-count">+13</span> <span class="del-count">−4</span></span></summary><div class="slot"><div class="pending">Loading…</div></div></details><details class="file" id="file-2" data-index="2" data-path="src/main/java/Cracker.java" open><summary><span class="badge modified">modified</span><span class="name">src/main/java/Cracker.java</span><span class="counts"><span class="add-count">+19</span> <span class="del-count">−1</span></span></summary><div class="slot"><div class="pending">Loading…</div></div></details>
+<h2 style="font-size:16px;margin:28px 0 12px">4 unchanged files</h2><details class="file" id="file-3" data-index="3" data-path=".gitignore"><summary><span class="badge unchanged">unchanged</span><span class="name">.gitignore</span><span class="counts"></span></summary><div class="slot"><div class="pending">Loading…</div></div></details><details class="file" id="file-4" data-index="4" data-path="AGENTS.md"><summary><span class="badge unchanged">unchanged</span><span class="name">AGENTS.md</span><span class="counts"></span></summary><div class="slot"><div class="pending">Loading…</div></div></details><details class="file" id="file-5" data-index="5" data-path="CLAUDE.md"><summary><span class="badge unchanged">unchanged</span><span class="name">CLAUDE.md</span><span class="counts"></span></summary><div class="slot"><div class="pending">Loading…</div></div></details><details class="file" id="file-6" data-index="6" data-path="CONTRIBUTORS.md"><summary><span class="badge unchanged">unchanged</span><span class="name">CONTRIBUTORS.md</span><span class="counts"></span></summary><div class="slot"><div class="pending">Loading…</div></div></details>
+</div>
+<script>window.DIFF_DATA = {"files": [{"path": "README.md", "oldPath": null, "status": "M", "language": "markdown", "changed": true, "old": ["# Cracker project template", "", "This is a project template for a greenfield Java project. The chatbot is named _Cracker_. Given below are instructions on how to use it.", "", "## Setting up in Intellij", "", "Prerequisites: JDK 25, update Intellij to the most recent version.", "", "1. Open Intellij (if you are not in the welcome screen, click `File` > `Close Project` to close the existing project first)", "1. Open the project into Intellij as follows:", "   1. Click `Open`.", "   1. Select the project directory, and click `OK`.", "   1. If there are any further prompts, accept the defaults.", "1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>", "   In the same dialog, set the **Project language level** field to the `SDK default` option.", "1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, enter a task to add it, use `list` to show all tasks, and enter `bye` to exit:", "   ```", "   ____________________________________________________________", "    ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗", "   ██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗", "   ██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝", "   ██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗", "   ╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║", "    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝", "   Hello! I'm Cracker.", "   What can I do for you?", "   ____________________________________________________________", "   read book", "    added: read book", "   ____________________________________________________________", "   return book", "    added: return book", "   ____________________________________________________________", "   list", "    1. read book", "    2. return book", "   ____________________________________________________________", "   bye", "    Bye. Hope to see you again soon!", "   ____________________________________________________________", "   ```", "", "Cracker keeps up to 100 tasks in memory while it is running. The tasks are not saved after the program exits.", "", "**Warning:** Keep the `src\\main\\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files."], "new": ["# Cracker project template", "", "This is a project template for a greenfield Java project. The chatbot is named _Cracker_. Given below are instructions on how to use it.", "", "## Setting up in Intellij", "", "Prerequisites: JDK 25, update Intellij to the most recent version.", "", "1. Open Intellij (if you are not in the welcome screen, click `File` > `Close Project` to close the existing project first)", "1. Open the project into Intellij as follows:", "   1. Click `Open`.", "   1. Select the project directory, and click `OK`.", "   1. If there are any further prompts, accept the defaults.", "1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>", "   In the same dialog, set the **Project language level** field to the `SDK default` option.", "1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, enter a task to add it, use `list` to show all tasks, use `mark TASK_NUMBER` to mark a task as done, and enter `bye` to exit:", "   ```", "   ____________________________________________________________", "    ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗", "   ██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗", "   ██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝", "   ██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗", "   ╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║", "    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝", "   Hello! I'm Cracker.", "   What can I do for you?", "   ____________________________________________________________", "   read book", "    added: read book", "   ____________________________________________________________", "   return book", "    added: return book", "   ____________________________________________________________", "   list", "    Here are the tasks in your list:", "    1.[ ] read book", "    2.[ ] return book", "   ____________________________________________________________", "   mark 2", "    Nice! I've marked this task as done:", "      [X] return book", "   ____________________________________________________________", "   bye", "    Bye. Hope to see you again soon!", "   ____________________________________________________________", "   ```", "", "Cracker keeps up to 100 tasks in memory while it is running. The tasks are not saved after the program exits.", "", "**Warning:** Keep the `src\\main\\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files."], "rows": [[0, 0, 0], [0, 1, 1], [0, 2, 2], [0, 3, 3], [0, 4, 4], [0, 5, 5], [0, 6, 6], [0, 7, 7], [0, 8, 8], [0, 9, 9], [0, 10, 10], [0, 11, 11], [0, 12, 12], [0, 13, 13], [0, 14, 14], [3, 15, 15, [], [260, 307]], [0, 16, 16], [0, 17, 17], [0, 18, 18], [0, 19, 19], [0, 20, 20], [0, 21, 21], [0, 22, 22], [0, 23, 23], [0, 24, 24], [0, 25, 25], [0, 26, 26], [0, 27, 27], [0, 28, 28], [0, 29, 29], [0, 30, 30], [0, 31, 31], [0, 32, 32], [0, 33, 33], [3, 34, 34], [3, 35, 35, [4, 5, 7, 13], [4, 5, 6, 7, 8, 14]], [2, -1, 36], [2, -1, 37], [2, -1, 38], [2, -1, 39], [2, -1, 40], [0, 36, 41], [0, 37, 42], [0, 38, 43], [0, 39, 44], [0, 40, 45], [0, 41, 46], [0, 42, 47], [0, 43, 48], [0, 44, 49]]}, {"path": "docs/README.md", "oldPath": null, "status": "M", "language": "markdown", "changed": true, "old": ["# Cracker User Guide", "", "// Product screenshot goes here", "", "Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Enter any task text to add it, enter `list` to display the saved tasks, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.", "", "```", "____________________________________________________________", " ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗", "██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗", "██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝", "██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗", "╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║", " ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝", "Hello! I'm Cracker.", "What can I do for you?", "____________________________________________________________", "read book", " added: read book", "____________________________________________________________", "return book", " added: return book", "____________________________________________________________", "list", " 1. read book", " 2. return book", "____________________________________________________________", "bye", " Bye. Hope to see you again soon!", "____________________________________________________________", "```", "", "## Adding tasks", "", "Enter a line of text that is not `list` or `bye`. Cracker confirms that the task was added.", "", "Example: `read book`", "", "```", " added: read book", "```", "", "## Listing tasks", "", "Enter `list` to display every task that has been added during the current run, numbered from 1.", "", "## Exiting", "", "Enter `bye` to end the program. Tasks are not saved to disk, so they will not be available the next time Cracker runs."], "new": ["# Cracker User Guide", "", "// Product screenshot goes here", "", "Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Enter any task text to add it, enter `list` to display the saved tasks, enter `mark TASK_NUMBER` to mark a task as done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.", "", "```", "____________________________________________________________", " ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗", "██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗", "██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝", "██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗", "╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║", " ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝", "Hello! I'm Cracker.", "What can I do for you?", "____________________________________________________________", "read book", " added: read book", "____________________________________________________________", "return book", " added: return book", "____________________________________________________________", "list", " Here are the tasks in your list:", " 1.[ ] read book", " 2.[ ] return book", "____________________________________________________________", "mark 2", " Nice! I've marked this task as done:", "   [X] return book", "____________________________________________________________", "bye", " Bye. Hope to see you again soon!", "____________________________________________________________", "```", "", "## Adding tasks", "", "Enter a line of text that is not `list` or `bye`. Cracker confirms that the task was added.", "", "Example: `read book`", "", "```", " added: read book", "```", "", "## Listing tasks", "", "Enter `list` to display every task that has been added during the current run, numbered from 1. A completed task is shown with `[X]`; an incomplete task is shown with `[ ]`.", "", "## Marking tasks as done", "", "Enter `mark TASK_NUMBER` to mark the numbered task as done. For example, `mark 2` marks the second task in the list.", "", "## Exiting", "", "Enter `bye` to end the program. Tasks are not saved to disk, so they will not be available the next time Cracker runs."], "rows": [[0, 0, 0], [0, 1, 1], [0, 2, 2], [0, 3, 3], [3, 4, 4, [], [166, 215]], [0, 5, 5], [0, 6, 6], [0, 7, 7], [0, 8, 8], [0, 9, 9], [0, 10, 10], [0, 11, 11], [0, 12, 12], [0, 13, 13], [0, 14, 14], [0, 15, 15], [0, 16, 16], [0, 17, 17], [0, 18, 18], [0, 19, 19], [0, 20, 20], [0, 21, 21], [0, 22, 22], [0, 23, 23], [3, 24, 24], [3, 25, 25, [1, 2, 4, 10], [1, 2, 3, 4, 5, 11]], [2, -1, 26], [2, -1, 27], [2, -1, 28], [2, -1, 29], [2, -1, 30], [0, 26, 31], [0, 27, 32], [0, 28, 33], [0, 29, 34], [0, 30, 35], [0, 31, 36], [0, 32, 37], [0, 33, 38], [0, 34, 39], [0, 35, 40], [0, 36, 41], [0, 37, 42], [0, 38, 43], [0, 39, 44], [0, 40, 45], [0, 41, 46], [0, 42, 47], [0, 43, 48], [3, 44, 49, [], [95, 173]], [2, -1, 50], [2, -1, 51], [2, -1, 52], [2, -1, 53], [0, 45, 54], [0, 46, 55], [0, 47, 56], [0, 48, 57]]}, {"path": "src/main/java/Cracker.java", "oldPath": null, "status": "M", "language": "java", "changed": true, "old": ["import java.util.Scanner;", "", "/**", " * Entry point for the Cracker chatbot application.", " */", "public class Cracker {", "    /** Maximum number of tasks stored during one run of the application. */", "    private static final int MAX_TASKS = 100;", "", "    /**", "     * Starts the chatbot, responding to commands until the user enters {@code bye}.", "     *", "     * @param args command-line arguments (not used)", "     */", "    public static void main(String[] args) {", "        String banner = \" ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ \\n\"", "                + \"██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗\\n\"", "                + \"██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝\\n\"", "                + \"██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗\\n\"", "                + \"╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║\\n\"", "                + \" ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝\\n\";", "        System.out.println(\"____________________________________________________________\");", "        System.out.print(banner);", "        System.out.println(\"Hello! I'm Cracker.\");", "        System.out.println(\"What can I do for you?\");", "        System.out.println(\"____________________________________________________________\");", "", "        String[] tasks = new String[MAX_TASKS];", "        int taskCount = 0;", "        Scanner scanner = new Scanner(System.in);", "        while (scanner.hasNextLine()) {", "            String command = scanner.nextLine();", "            if (command.equals(\"bye\")) {", "                break;", "            }", "", "            if (command.equals(\"list\")) {", "                for (int i = 0; i < taskCount; i++) {", "                    System.out.println(\" \" + (i + 1) + \". \" + tasks[i]);", "                }", "            } else if (taskCount < MAX_TASKS) {", "                tasks[taskCount] = command;", "                taskCount++;", "                System.out.println(\" added: \" + command);", "            }", "            System.out.println(\"____________________________________________________________\");", "        }", "", "        System.out.println(\" Bye. Hope to see you again soon!\");", "        System.out.println(\"____________________________________________________________\");", "        scanner.close();", "    }", "}"], "new": ["import java.util.Scanner;", "", "/**", " * Entry point for the Cracker chatbot application.", " */", "public class Cracker {", "    /** Maximum number of tasks stored during one run of the application. */", "    private static final int MAX_TASKS = 100;", "", "    /**", "     * Starts the chatbot, responding to commands until the user enters {@code bye}.", "     *", "     * @param args command-line arguments (not used)", "     */", "    public static void main(String[] args) {", "        String banner = \" ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ \\n\"", "                + \"██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗\\n\"", "                + \"██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝\\n\"", "                + \"██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗\\n\"", "                + \"╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║\\n\"", "                + \" ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝\\n\";", "        System.out.println(\"____________________________________________________________\");", "        System.out.print(banner);", "        System.out.println(\"Hello! I'm Cracker.\");", "        System.out.println(\"What can I do for you?\");", "        System.out.println(\"____________________________________________________________\");", "", "        String[] tasks = new String[MAX_TASKS];", "        boolean[] isDone = new boolean[MAX_TASKS];", "        int taskCount = 0;", "        Scanner scanner = new Scanner(System.in);", "        while (scanner.hasNextLine()) {", "            String command = scanner.nextLine();", "            if (command.equals(\"bye\")) {", "                break;", "            }", "", "            if (command.equals(\"list\")) {", "                System.out.println(\" Here are the tasks in your list:\");", "                for (int i = 0; i < taskCount; i++) {", "                    String status = isDone[i] ? \"[X]\" : \"[ ]\";", "                    System.out.println(\" \" + (i + 1) + \".\" + status + \" \" + tasks[i]);", "                }", "            } else if (command.startsWith(\"mark \")) {", "                String taskNumberText = command.substring(\"mark \".length()).trim();", "                try {", "                    int taskNumber = Integer.parseInt(taskNumberText);", "                    if (taskNumber < 1 || taskNumber > taskCount) {", "                        System.out.println(\" Please provide the number of a task in your list.\");", "                    } else {", "                        int taskIndex = taskNumber - 1;", "                        isDone[taskIndex] = true;", "                        System.out.println(\" Nice! I've marked this task as done:\");", "                        System.out.println(\"   [X] \" + tasks[taskIndex]);", "                    }", "                } catch (NumberFormatException e) {", "                    System.out.println(\" Please provide the number of a task in your list.\");", "                }", "            } else if (taskCount < MAX_TASKS) {", "                tasks[taskCount] = command;", "                taskCount++;", "                System.out.println(\" added: \" + command);", "            }", "            System.out.println(\"____________________________________________________________\");", "        }", "", "        System.out.println(\" Bye. Hope to see you again soon!\");", "        System.out.println(\"____________________________________________________________\");", "        scanner.close();", "    }", "}"], "rows": [[0, 0, 0], [0, 1, 1], [0, 2, 2], [0, 3, 3], [0, 4, 4], [0, 5, 5], [0, 6, 6], [0, 7, 7], [0, 8, 8], [0, 9, 9], [0, 10, 10], [0, 11, 11], [0, 12, 12], [0, 13, 13], [0, 14, 14], [0, 15, 15], [0, 16, 16], [0, 17, 17], [0, 18, 18], [0, 19, 19], [0, 20, 20], [0, 21, 21], [0, 22, 22], [0, 23, 23], [0, 24, 24], [0, 25, 25], [0, 26, 26], [0, 27, 27], [2, -1, 28], [0, 28, 29], [0, 29, 30], [0, 30, 31], [0, 31, 32], [0, 32, 33], [0, 33, 34], [0, 34, 35], [0, 35, 36], [0, 36, 37], [2, -1, 38], [0, 37, 39], [3, 38, 40], [2, -1, 41], [2, -1, 42], [2, -1, 43], [2, -1, 44], [2, -1, 45], [2, -1, 46], [2, -1, 47], [2, -1, 48], [2, -1, 49], [2, -1, 50], [2, -1, 51], [2, -1, 52], [2, -1, 53], [2, -1, 54], [2, -1, 55], [2, -1, 56], [0, 39, 57], [0, 40, 58], [0, 41, 59], [0, 42, 60], [0, 43, 61], [0, 44, 62], [0, 45, 63], [0, 46, 64], [0, 47, 65], [0, 48, 66], [0, 49, 67], [0, 50, 68], [0, 51, 69], [0, 52, 70]]}, {"path": ".gitignore", "oldPath": null, "status": "=", "language": "plaintext", "changed": false, "old": [], "new": ["# IDEA files", "/.idea/", "/out/", "/*.iml", "", "# Gradle build files", "/.gradle/", "/build/", "src/main/resources/docs/", "", "# MacOS custom attributes files created by Finder", ".DS_Store", "*.iml", "bin/", "", "# Temp files", "_temp/", "", "/text-ui-test/ACTUAL.TXT", "text-ui-test/EXPECTED-UNIX.TXT"], "rows": [[0, -1, 0], [0, -1, 1], [0, -1, 2], [0, -1, 3], [0, -1, 4], [0, -1, 5], [0, -1, 6], [0, -1, 7], [0, -1, 8], [0, -1, 9], [0, -1, 10], [0, -1, 11], [0, -1, 12], [0, -1, 13], [0, -1, 14], [0, -1, 15], [0, -1, 16], [0, -1, 17], [0, -1, 18], [0, -1, 19]]}, {"path": "AGENTS.md", "oldPath": null, "status": "=", "language": "markdown", "changed": false, "old": [], "new": ["# Project context", "", "This repository is a starter template for a greenfield Java project used in an introductory software engineering course in an undergraduate computer science program. Students use it as the starting point for their own projects.", "", "# Default user context", "", "Unless the user says otherwise, assume that you are assisting a student working on a project in this repository. If the user identifies themselves as an instructor or another project stakeholder, adapt your response to that role.", "", "# Student profile", "", "* Prior knowledge: Basic Java and OOP concepts.", "* Level of programming experience: [to be filled]", "* IDE and level of expertise: [to be filled]", "", "# Guidance for interacting with users", "", "* Explain the rationale for significant actions: what you did and why.", "* Keep explanations brief but instructive, supporting learning through responsible use of AI. For example:", "", "  * When suggesting a Git command, briefly explain what it does.", "  * Add explanatory Javadoc comments to all classes and to nontrivial methods and fields when their purpose or behavior is not obvious.", "  * Make generated code as self-explanatory as possible, and include explanatory comments where they improve understanding.", "  * When faced with a design choice, choose the simplest option that is sufficient for the requirements, while briefly explaining relevant more advanced alternatives.", "", "# Project-specific requirements", "", "## Java version:", "", "Ensure that Java 25 is used when running the application or build tasks. On macOS, use `sdk use java 25.0.3.fx-zulu` to switch to Java 25 if needed.", "", "## Git", "", "Use lightweight tags unless the user requests an annotated tag.", "When proposing or creating a commit message, include enough detail to explain the rationale for the change.", "Do not commit or push unless explicitly asked."], "rows": [[0, -1, 0], [0, -1, 1], [0, -1, 2], [0, -1, 3], [0, -1, 4], [0, -1, 5], [0, -1, 6], [0, -1, 7], [0, -1, 8], [0, -1, 9], [0, -1, 10], [0, -1, 11], [0, -1, 12], [0, -1, 13], [0, -1, 14], [0, -1, 15], [0, -1, 16], [0, -1, 17], [0, -1, 18], [0, -1, 19], [0, -1, 20], [0, -1, 21], [0, -1, 22], [0, -1, 23], [0, -1, 24], [0, -1, 25], [0, -1, 26], [0, -1, 27], [0, -1, 28], [0, -1, 29], [0, -1, 30], [0, -1, 31], [0, -1, 32], [0, -1, 33], [0, -1, 34]]}, {"path": "CLAUDE.md", "oldPath": null, "status": "=", "language": "markdown", "changed": false, "old": [], "new": ["@AGENTS.md"], "rows": [[0, -1, 0]]}, {"path": "CONTRIBUTORS.md", "oldPath": null, "status": "=", "language": "markdown", "changed": false, "old": [], "new": ["# Contributors", "", "Display | Name | Github Profile | Homepage", "---|:---:|:---:|:---:", "![](https://avatars0.githubusercontent.com/u/22460123?s=100) | Jeffry Lum | [Github](https://github.com/j-lum/) | [Homepage](https://se.kasugano.moe)", "![](https://avatars0.githubusercontent.com/u/1673303?s=100) | Damith C. Rajapakse | [Github](https://github.com/damithc/) | [Homepage](https://www.comp.nus.edu.sg/~damithch/)", "# I would like to join this list. How can I help the project", "", "For more information, please refer to our [contributor's guide](https://oss-generic.github.io/process/)."], "rows": [[0, -1, 0], [0, -1, 1], [0, -1, 2], [0, -1, 3], [0, -1, 4], [0, -1, 5], [0, -1, 6], [0, -1, 7], [0, -1, 8]]}]};</script>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>
+const OP_EQUAL = 0, OP_DELETE = 1, OP_INSERT = 2, OP_REPLACE = 3;
+const FOLD_THRESHOLD = 20, CONTEXT_LINES = 6;
+
+function escapeHtml(text) {
+  return text.replace(/[&<>]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+}
+
+/* highlight.js colors a whole file at once (so block comments and multi-line
+   strings are read correctly), then we cut the result into lines, re-opening
+   any spans that straddle a line break. */
+function highlightLines(lines, language) {
+  const plain = () => lines.map(escapeHtml);
+  if (!lines.length) return [];
+  if (!window.hljs || !hljs.getLanguage(language)) return plain();
+  let html;
+  try {
+    html = hljs.highlight(lines.join("\n"), { language, ignoreIllegals: true }).value;
+  } catch (err) {
+    return plain();
+  }
+  const out = [];
+  const open = [];
+  let current = "";
+  let i = 0;
+  while (i < html.length) {
+    const next = html.slice(i).search(/[<\n]/);
+    if (next === -1) { current += html.slice(i); break; }
+    current += html.slice(i, i + next);
+    i += next;
+    if (html[i] === "\n") {
+      out.push(current + "</span>".repeat(open.length));
+      current = open.join("");
+      i += 1;
+    } else {
+      const end = html.indexOf(">", i);
+      const tag = html.slice(i, end + 1);
+      if (tag[1] === "/") open.pop(); else open.push(tag);
+      current += tag;
+      i = end + 1;
+    }
+  }
+  out.push(current);
+  return out.length === lines.length ? out : plain();
+}
+
+/* Wrap the changed character ranges of one line, working on the DOM so the
+   offsets stay in sync with the text rather than with the highlighting markup. */
+function applyWordRanges(cell, ranges) {
+  if (!ranges || !ranges.length) return;
+  const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+  let offset = 0;
+  for (const textNode of nodes) {
+    const start = offset, end = offset + textNode.nodeValue.length;
+    offset = end;
+    const pieces = [];
+    for (let r = 0; r < ranges.length; r += 2) {
+      const from = Math.max(ranges[r], start), to = Math.min(ranges[r + 1], end);
+      if (to > from) pieces.push([from - start, to - start]);
+    }
+    let rest = textNode;
+    let consumed = 0;
+    for (const [from, to] of pieces) {
+      const tail = rest.splitText(from - consumed);
+      const after = tail.splitText(to - from);
+      const mark = document.createElement("mark");
+      mark.className = "word";
+      tail.parentNode.replaceChild(mark, tail);
+      mark.appendChild(tail);
+      rest = after;
+      consumed = to;
+    }
+  }
+}
+
+function numCell(index, side) {
+  return index >= 0
+    ? `<td class="num ${side}">${index + 1}</td>`
+    : `<td class="num ${side}"></td>`;
+}
+
+/* mode is "split", or "old"/"new" for the one-column view used by files that
+   were added, deleted, or not changed at all. */
+function renderRow(row, oldHtml, newHtml, mode) {
+  const [op, oldIndex, newIndex] = row;
+  const cls = { [OP_EQUAL]: "eq", [OP_DELETE]: "del", [OP_INSERT]: "ins", [OP_REPLACE]: "rep" }[op];
+  const cell = (index, side, lines) => index >= 0
+    ? `<td class="code side-${side}">${lines[index] || "&nbsp;"}</td>`
+    : `<td class="code side-${side} blank"></td>`;
+  if (mode === "old") return `<tr class="${cls}">${numCell(oldIndex, "old")}${cell(oldIndex, "old", oldHtml)}</tr>`;
+  if (mode === "new") return `<tr class="${cls}">${numCell(newIndex, "new")}${cell(newIndex, "new", newHtml)}</tr>`;
+  return `<tr class="${cls}">${numCell(oldIndex, "old")}${cell(oldIndex, "old", oldHtml)}`
+       + `${numCell(newIndex, "new")}${cell(newIndex, "new", newHtml)}</tr>`;
+}
+
+/* Group the rows into segments: long stretches of untouched lines become a
+   single clickable "N unchanged lines" strip. */
+function segmentRows(rows, foldAll) {
+  const segments = [];
+  let run = [];
+  const flushRun = () => {
+    if (!run.length) return;
+    if (foldAll || run.length > FOLD_THRESHOLD) {
+      const head = foldAll ? [] : run.slice(0, segments.length ? CONTEXT_LINES : 0);
+      const tail = foldAll ? [] : run.slice(-CONTEXT_LINES);
+      const hidden = run.slice(head.length, run.length - tail.length);
+      if (head.length) segments.push({ type: "rows", rows: head });
+      if (hidden.length) segments.push({ type: "fold", rows: hidden });
+      if (tail.length) segments.push({ type: "rows", rows: tail });
+    } else {
+      segments.push({ type: "rows", rows: run });
+    }
+    run = [];
+  };
+  for (const row of rows) {
+    if (row[0] === OP_EQUAL) run.push(row);
+    else { flushRun(); segments.push({ type: "rows", rows: [row] }); }
+  }
+  flushRun();
+  /* The last stretch of a file has no following change, so drop its trailing context. */
+  return segments;
+}
+
+function renderFile(file, container) {
+  const mode = file.status === "D" ? "old"
+    : (!file.changed || file.status === "A") ? "new" : "split";
+  const single = mode !== "split";
+  const oldHtml = highlightLines(file.old, file.language);
+  const newHtml = highlightLines(file.new, file.language);
+  const table = document.createElement("table");
+  table.className = "diff" + (single ? " single" : "");
+  table.innerHTML = single
+    ? '<colgroup><col class="num"><col class="code"></colgroup>'
+    : '<colgroup><col class="num"><col class="code"><col class="num"><col class="code"></colgroup>';
+  const body = document.createElement("tbody");
+  table.appendChild(body);
+
+  const segments = segmentRows(file.rows, !file.changed);
+  const chunks = [];
+  segments.forEach((segment, index) => {
+    if (segment.type === "fold") {
+      const label = `⋯  ${segment.rows.length} unchanged line${segment.rows.length === 1 ? "" : "s"}`;
+      chunks.push(
+        `<tr class="fold" data-segment="${index}"><td colspan="${single ? 2 : 4}">` +
+        `<button type="button">${label}</button></td></tr>`
+      );
+    } else {
+      for (const row of segment.rows) chunks.push(renderRow(row, oldHtml, newHtml, mode));
+    }
+  });
+  body.innerHTML = chunks.join("");
+
+  const markRows = (scope) => {
+    for (const tr of scope.querySelectorAll("tr.rep")) {
+      const row = tr._row;
+      if (!row || row.length < 5) continue;
+      applyWordRanges(tr.querySelector("td.side-old"), row[3]);
+      applyWordRanges(tr.querySelector("td.side-new"), row[4]);
+    }
+  };
+  /* Attach each rendered <tr> to its row data so word marks can be applied. */
+  const attach = (scope, rows) => {
+    const trs = scope.querySelectorAll("tr:not(.fold)");
+    let cursor = 0;
+    for (const tr of trs) { if (!tr._row) tr._row = rows[cursor++]; }
+  };
+  const flatRows = [];
+  segments.forEach(segment => { if (segment.type !== "fold") flatRows.push(...segment.rows); });
+  attach(body, flatRows);
+  markRows(body);
+
+  body.addEventListener("click", event => {
+    const button = event.target.closest("tr.fold button");
+    if (!button) return;
+    const tr = button.closest("tr.fold");
+    const segment = segments[Number(tr.dataset.segment)];
+    const holder = document.createElement("tbody");
+    holder.innerHTML = segment.rows.map(row => renderRow(row, oldHtml, newHtml, mode)).join("");
+    const fragment = document.createDocumentFragment();
+    while (holder.firstChild) fragment.appendChild(holder.firstChild);
+    tr.replaceWith(fragment);
+  });
+
+  container.innerHTML = "";
+  const scroller = document.createElement("div");
+  scroller.className = "diff-wrap";
+  scroller.appendChild(table);
+  container.appendChild(scroller);
+}
+
+function setup() {
+  const files = window.DIFF_DATA.files;
+  const byIndex = new Map();
+  document.querySelectorAll(".file").forEach(element => {
+    byIndex.set(element, files[Number(element.dataset.index)]);
+  });
+
+  const render = element => {
+    const file = byIndex.get(element);
+    const slot = element.querySelector(".slot");
+    if (!file || !slot || slot.dataset.done === "1") return;
+    slot.dataset.done = "1";
+    renderFile(file, slot);
+  };
+
+  const sections = [...document.querySelectorAll(".file")];
+  sections.forEach(element => {
+    element.addEventListener("toggle", () => { if (element.open) render(element); });
+  });
+
+  /* Changed files are all built up front -- so browser find-in-page and printing
+     see everything -- but in small batches, so the page is usable right away.
+     Files that did not change are built only when their panel is opened. */
+  const queue = sections.filter(element => element.open);
+  const renderBatch = () => {
+    const started = performance.now();
+    while (queue.length && performance.now() - started < 40) render(queue.shift());
+    if (queue.length) setTimeout(renderBatch, 0);
+  };
+  renderBatch();
+  window.addEventListener("beforeprint", () => sections.forEach(render));
+
+  document.getElementById("expand-all").addEventListener("click", () => {
+    document.querySelectorAll(".file").forEach(element => { element.open = true; render(element); });
+  });
+  document.getElementById("collapse-all").addEventListener("click", () => {
+    document.querySelectorAll(".file").forEach(element => { element.open = false; });
+  });
+
+  const filter = document.getElementById("filter");
+  filter.addEventListener("input", () => {
+    const needle = filter.value.trim().toLowerCase();
+    document.querySelectorAll(".file").forEach(element => {
+      const path = element.dataset.path.toLowerCase();
+      element.hidden = needle !== "" && !path.includes(needle);
+    });
+    document.querySelectorAll(".index li").forEach(item => {
+      item.hidden = needle !== "" && !item.dataset.path.toLowerCase().includes(needle);
+    });
+  });
+
+  document.querySelectorAll(".index a").forEach(link => {
+    link.addEventListener("click", () => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (target) { target.open = true; render(target); }
+    });
+  });
+}
+
+if (window.hljs) setup();
+else window.addEventListener("load", setup, { once: true });
+</script>
+</body>
+</html>

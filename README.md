@@ -13,7 +13,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, enter a task to add it, use `list` to show all tasks, use `mark TASK_NUMBER` to mark a task as done, and enter `bye` to exit:
+1. After that, locate the `src/main/java/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, enter a task to add it, use `list` to show all tasks, use `mark TASK_NUMBER` or `unmark TASK_NUMBER` to update a task's completion status, and enter `bye` to exit:
    ```
    ____________________________________________________________
     ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
@@ -37,8 +37,12 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
     2.[ ] return book
    ____________________________________________________________
    mark 2
-    Nice! I've marked this task as done:
+   Nice! I've marked this task as done:
       [X] return book
+   ____________________________________________________________
+   unmark 2
+    OK, I've marked this task as not done yet:
+      [ ] return book
    ____________________________________________________________
    bye
     Bye. Hope to see you again soon!

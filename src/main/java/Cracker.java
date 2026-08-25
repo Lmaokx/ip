@@ -26,6 +26,7 @@ public class Cracker {
         System.out.println("____________________________________________________________");
 
         String[] tasks = new String[MAX_TASKS];
+        boolean[] isDone = new boolean[MAX_TASKS];
         int taskCount = 0;
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
@@ -35,8 +36,25 @@ public class Cracker {
             }
 
             if (command.equals("list")) {
+                System.out.println(" Here are the tasks in your list:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println(" " + (i + 1) + ". " + tasks[i]);
+                    String status = isDone[i] ? "[X]" : "[ ]";
+                    System.out.println(" " + (i + 1) + "." + status + " " + tasks[i]);
+                }
+            } else if (command.startsWith("mark ")) {
+                String taskNumberText = command.substring("mark ".length()).trim();
+                try {
+                    int taskNumber = Integer.parseInt(taskNumberText);
+                    if (taskNumber < 1 || taskNumber > taskCount) {
+                        System.out.println(" Please provide the number of a task in your list.");
+                    } else {
+                        int taskIndex = taskNumber - 1;
+                        isDone[taskIndex] = true;
+                        System.out.println(" Nice! I've marked this task as done:");
+                        System.out.println("   [X] " + tasks[taskIndex]);
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println(" Please provide the number of a task in your list.");
                 }
             } else if (taskCount < MAX_TASKS) {
                 tasks[taskCount] = command;

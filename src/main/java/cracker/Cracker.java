@@ -1,3 +1,5 @@
+package cracker;
+
 import java.util.Scanner;
 
 /**

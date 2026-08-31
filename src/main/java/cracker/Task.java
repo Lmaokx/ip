@@ -51,4 +51,14 @@ public class Task {
     public String getDescription() {
         return description;
     }
+
+    /**
+     * Returns this task in the common display format.
+     *
+     * @return this task's status and description
+     */
+    @Override
+    public String toString() {
+        return "[" + getStatusIcon() + "] " + description;
+    }
 }

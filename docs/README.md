@@ -2,7 +2,7 @@
 
 // Product screenshot goes here
 
-Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Enter any task text to add it, enter `list` to display the saved tasks, enter `mark TASK_NUMBER` to mark a task as done, enter `unmark TASK_NUMBER` to mark a task as not done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.
+Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Use `todo`, `deadline`, or `event` to add a task, enter `list` to display saved tasks, enter `mark TASK_NUMBER` to mark a task as done, enter `unmark TASK_NUMBER` to mark a task as not done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.
 
 ```
 ____________________________________________________________
@@ -15,24 +15,28 @@ ____________________________________________________________
 Hello! I'm Cracker.
 What can I do for you?
 ____________________________________________________________
-read book
- added: read book
+todo read book
+ Got it. I've added this task:
+   [T][ ] read book
+ Now you have 1 tasks in the list.
 ____________________________________________________________
-return book
- added: return book
+deadline return book /by June 6th
+ Got it. I've added this task:
+   [D][ ] return book (by: June 6th)
+ Now you have 2 tasks in the list.
 ____________________________________________________________
 list
  Here are the tasks in your list:
- 1.[ ] read book
- 2.[ ] return book
+ 1.[T][ ] read book
+ 2.[D][ ] return book (by: June 6th)
 ____________________________________________________________
 mark 2
  Nice! I've marked this task as done:
-   [X] return book
+   [D][X] return book (by: June 6th)
 ____________________________________________________________
 unmark 2
  OK, I've marked this task as not done yet:
-   [ ] return book
+   [D][ ] return book (by: June 6th)
 ____________________________________________________________
 bye
  Bye. Hope to see you again soon!
@@ -41,17 +45,21 @@ ____________________________________________________________
 
 ## Adding tasks
 
-Enter a line of text that is not `list` or `bye`. Cracker confirms that the task was added.
+Use one of the following commands to add a task. Dates and times are preserved as text; they do not need a particular format.
 
-Example: `read book`
+* `todo DESCRIPTION` adds a task without a date or time. Example: `todo read book`
+* `deadline DESCRIPTION /by DUE_TIME` adds a task due by a time. Example: `deadline return book /by Sunday`
+* `event DESCRIPTION /from START_TIME /to END_TIME` adds a task with a time range. Example: `event project meeting /from Mon 2pm /to 4pm`
 
 ```
- added: read book
+ Got it. I've added this task:
+   [T][ ] read book
+ Now you have 1 tasks in the list.
 ```
 
 ## Listing tasks
 
-Enter `list` to display every task that has been added during the current run, numbered from 1. A completed task is shown with `[X]`; an incomplete task is shown with `[ ]`.
+Enter `list` to display every task that has been added during the current run, numbered from 1. A completed task is shown with `[X]`; an incomplete task is shown with `[ ]`. Each task begins with `[T]`, `[D]`, or `[E]` to identify its type.
 
 ## Marking tasks as done
 

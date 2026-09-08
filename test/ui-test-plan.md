@@ -95,3 +95,61 @@ ____________________________________________________________
 ```
 
 **Variable output rule:** The six ASCII-art banner lines represented by `<Cracker banner>` are not compared because their rendering depends on the terminal character encoding. Every other line is compared exactly.
+
+### UI-002 — Explain invalid commands and missing task details
+
+**Aim:** Verifies that malformed commands produce specific correction guidance without adding invalid tasks.
+
+**Setup/assumptions:** The application starts with an empty in-memory task list. Java 25 is available.
+
+**Command:**
+
+```text
+javac -d out src/main/java/cracker/*.java; @'
+todo
+deadline submit report /by
+event /from 2pm /to 3pm
+mark zero
+blah
+list
+bye
+'@ | java -cp out cracker.Cracker
+```
+
+**Console input:**
+
+```text
+todo
+deadline submit report /by
+event /from 2pm /to 3pm
+mark zero
+blah
+list
+bye
+```
+
+**Expected output:**
+
+```text
+____________________________________________________________
+<Cracker banner>
+Hello! I'm Cracker.
+What can I do for you?
+____________________________________________________________
+ Error: A to-do needs a description. Try: todo buy groceries
+____________________________________________________________
+ Error: A deadline needs a due time after /by.
+____________________________________________________________
+ Error: An event needs a description before /from.
+____________________________________________________________
+ Error: There are no tasks yet. Add a task first.
+____________________________________________________________
+ Error: I don't recognize that command. Use todo, deadline, event, list, mark, unmark, or bye.
+____________________________________________________________
+ Here are the tasks in your list:
+____________________________________________________________
+ Bye. Hope to see you again soon!
+____________________________________________________________
+```
+
+**Variable output rule:** The six ASCII-art banner lines represented by `<Cracker banner>` are not compared because their rendering depends on the terminal character encoding. Every other line is compared exactly.

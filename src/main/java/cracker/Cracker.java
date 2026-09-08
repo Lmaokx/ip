@@ -74,30 +74,68 @@ public class Cracker {
      * @return the updated number of tasks
      */
     private static int handleCommand(String command, Task[] tasks, int taskCount) {
-        if (command.equals("list")) {
+        String trimmedCommand = command.trim();
+        if (trimmedCommand.equals("list")) {
             listTasks(tasks, taskCount);
             return taskCount;
         }
-        if (command.startsWith("mark ")) {
-            markTask(tasks, taskCount, command.substring("mark ".length()).trim());
+        if (isCommand(trimmedCommand, "mark")) {
+            markTask(tasks, taskCount, getCommandDetails(trimmedCommand, "mark"));
             return taskCount;
         }
-        if (command.startsWith("unmark ")) {
-            unmarkTask(tasks, taskCount, command.substring("unmark ".length()).trim());
+        if (isCommand(trimmedCommand, "unmark")) {
+            unmarkTask(tasks, taskCount, getCommandDetails(trimmedCommand, "unmark"));
             return taskCount;
         }
-        if (command.startsWith("todo ") && taskCount < MAX_TASKS) {
-            return addTask(tasks, taskCount, new Todo(command.substring("todo ".length()).trim()));
+        if (isCommand(trimmedCommand, "todo")) {
+            String description = getCommandDetails(trimmedCommand, "todo");
+            if (description.isEmpty()) {
+                printError("A to-do needs a description. Try: todo buy groceries");
+                return taskCount;
+            }
+            return addTask(tasks, taskCount, new Todo(description));
         }
-        if (command.startsWith("deadline ") && taskCount < MAX_TASKS) {
-            return addDeadline(tasks, taskCount, command.substring("deadline ".length()).trim());
+        if (isCommand(trimmedCommand, "deadline")) {
+            return addDeadline(tasks, taskCount, getCommandDetails(trimmedCommand, "deadline"));
         }
-        if (command.startsWith("event ") && taskCount < MAX_TASKS) {
-            return addEvent(tasks, taskCount, command.substring("event ".length()).trim());
+        if (isCommand(trimmedCommand, "event")) {
+            return addEvent(tasks, taskCount, getCommandDetails(trimmedCommand, "event"));
         }
 
-        System.out.println(" Don't understand the command ... yet.");
+        printError("I don't recognize that command. Use todo, deadline, event, list, mark, unmark, or bye.");
         return taskCount;
+    }
+
+    /**
+     * Returns whether the input begins with the specified command and no partial command name.
+     *
+     * @param input user input with surrounding whitespace removed
+     * @param commandName supported command name
+     * @return whether the input is the command or begins with the command followed by whitespace
+     */
+    private static boolean isCommand(String input, String commandName) {
+        return input.equals(commandName)
+                || input.startsWith(commandName) && Character.isWhitespace(input.charAt(commandName.length()));
+    }
+
+    /**
+     * Returns the text after a command name.
+     *
+     * @param input user input with surrounding whitespace removed
+     * @param commandName supported command name at the start of the input
+     * @return command details with surrounding whitespace removed
+     */
+    private static String getCommandDetails(String input, String commandName) {
+        return input.substring(commandName.length()).trim();
+    }
+
+    /**
+     * Prints a user-facing explanation for invalid input.
+     *
+     * @param message explanation and correction for the invalid input
+     */
+    private static void printError(String message) {
+        System.out.println(" Error: " + message);
     }
 
     /**
@@ -158,15 +196,20 @@ public class Cracker {
      * @return the requested task, or {@code null} when the number is invalid
      */
     private static Task getTask(Task[] tasks, int taskCount, String taskNumberText) {
+        if (taskCount == 0) {
+            printError("There are no tasks yet. Add a task first.");
+            return null;
+        }
+
         try {
             int taskNumber = Integer.parseInt(taskNumberText);
             if (taskNumber < 1 || taskNumber > taskCount) {
-                System.out.println(" Please provide the number of a task in your list.");
+                printError("Enter a task number from 1 to " + taskCount + ".");
                 return null;
             }
             return tasks[taskNumber - 1];
         } catch (NumberFormatException e) {
-            System.out.println(" Please provide the number of a task in your list.");
+            printError("Enter a task number from 1 to " + taskCount + ".");
             return null;
         }
     }
@@ -180,14 +223,22 @@ public class Cracker {
      * @return the updated number of tasks
      */
     private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails) {
-        int byIndex = deadlineDetails.indexOf(" /by ");
+        int byIndex = deadlineDetails.indexOf("/by");
         if (byIndex < 0) {
-            System.out.println(" Please specify a deadline using /by.");
+            printError("A deadline needs /by followed by a due time.");
             return taskCount;
         }
 
         String description = deadlineDetails.substring(0, byIndex).trim();
-        String by = deadlineDetails.substring(byIndex + " /by ".length()).trim();
+        String by = deadlineDetails.substring(byIndex + "/by".length()).trim();
+        if (description.isEmpty()) {
+            printError("A deadline needs a description before /by.");
+            return taskCount;
+        }
+        if (by.isEmpty()) {
+            printError("A deadline needs a due time after /by.");
+            return taskCount;
+        }
         return addTask(tasks, taskCount, new Deadline(description, by));
     }
 
@@ -200,16 +251,28 @@ public class Cracker {
      * @return the updated number of tasks
      */
     private static int addEvent(Task[] tasks, int taskCount, String eventDetails) {
-        int fromIndex = eventDetails.indexOf(" /from ");
-        int toIndex = eventDetails.indexOf(" /to ");
+        int fromIndex = eventDetails.indexOf("/from");
+        int toIndex = eventDetails.indexOf("/to");
         if (fromIndex < 0 || toIndex <= fromIndex) {
-            System.out.println(" Please specify an event using /from and /to.");
+            printError("An event needs /from and /to, for example: event meeting /from 2pm /to 3pm");
             return taskCount;
         }
 
         String description = eventDetails.substring(0, fromIndex).trim();
-        String from = eventDetails.substring(fromIndex + " /from ".length(), toIndex).trim();
-        String to = eventDetails.substring(toIndex + " /to ".length()).trim();
+        String from = eventDetails.substring(fromIndex + "/from".length(), toIndex).trim();
+        String to = eventDetails.substring(toIndex + "/to".length()).trim();
+        if (description.isEmpty()) {
+            printError("An event needs a description before /from.");
+            return taskCount;
+        }
+        if (from.isEmpty()) {
+            printError("An event needs a start time after /from.");
+            return taskCount;
+        }
+        if (to.isEmpty()) {
+            printError("An event needs an end time after /to.");
+            return taskCount;
+        }
         return addTask(tasks, taskCount, new Event(description, from, to));
     }
 
@@ -230,6 +293,11 @@ public class Cracker {
      * @return the updated number of tasks
      */
     private static int addTask(Task[] tasks, int taskCount, Task task) {
+        if (taskCount == MAX_TASKS) {
+            printError("Your task list is full. Remove a task before adding another one.");
+            return taskCount;
+        }
+
         tasks[taskCount] = task;
         System.out.println(" Got it. I've added this task:");
         System.out.println("   " + task);

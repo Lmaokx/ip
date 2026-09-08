@@ -58,7 +58,11 @@ public class Cracker {
                 break;
             }
 
-            taskCount = handleCommand(command, tasks, taskCount);
+            try {
+                taskCount = handleCommand(command, tasks, taskCount);
+            } catch (CrackerException e) {
+                printError(e.getMessage());
+            }
             System.out.println(DIVIDER);
         }
 
@@ -73,31 +77,68 @@ public class Cracker {
      * @param taskCount number of stored tasks
      * @return the updated number of tasks
      */
-    private static int handleCommand(String command, Task[] tasks, int taskCount) {
-        if (command.equals("list")) {
+    private static int handleCommand(String command, Task[] tasks, int taskCount) throws CrackerException {
+        String trimmedCommand = command.trim();
+        if (trimmedCommand.equals("list")) {
             listTasks(tasks, taskCount);
             return taskCount;
         }
-        if (command.startsWith("mark ")) {
-            markTask(tasks, taskCount, command.substring("mark ".length()).trim());
+        if (isCommand(trimmedCommand, "mark")) {
+            markTask(tasks, taskCount, getCommandDetails(trimmedCommand, "mark"));
             return taskCount;
         }
-        if (command.startsWith("unmark ")) {
-            unmarkTask(tasks, taskCount, command.substring("unmark ".length()).trim());
+        if (isCommand(trimmedCommand, "unmark")) {
+            unmarkTask(tasks, taskCount, getCommandDetails(trimmedCommand, "unmark"));
             return taskCount;
         }
-        if (command.startsWith("todo ") && taskCount < MAX_TASKS) {
-            return addTask(tasks, taskCount, new Todo(command.substring("todo ".length()).trim()));
+        if (isCommand(trimmedCommand, "todo")) {
+            String description = getCommandDetails(trimmedCommand, "todo");
+            if (description.isEmpty()) {
+                throw new CrackerException("A to-do needs a description. Try: todo buy groceries");
+            }
+            return addTask(tasks, taskCount, new Todo(description));
         }
-        if (command.startsWith("deadline ") && taskCount < MAX_TASKS) {
-            return addDeadline(tasks, taskCount, command.substring("deadline ".length()).trim());
+        if (isCommand(trimmedCommand, "deadline")) {
+            return addDeadline(tasks, taskCount, getCommandDetails(trimmedCommand, "deadline"));
         }
-        if (command.startsWith("event ") && taskCount < MAX_TASKS) {
-            return addEvent(tasks, taskCount, command.substring("event ".length()).trim());
+        if (isCommand(trimmedCommand, "event")) {
+            return addEvent(tasks, taskCount, getCommandDetails(trimmedCommand, "event"));
         }
 
-        System.out.println(" Don't understand the command ... yet.");
-        return taskCount;
+        throw new CrackerException("I don't recognize that command. Use todo, deadline, event, list, mark, unmark, "
+                + "or bye.");
+    }
+
+    /**
+     * Returns whether the input begins with the specified command and no partial command name.
+     *
+     * @param input user input with surrounding whitespace removed
+     * @param commandName supported command name
+     * @return whether the input is the command or begins with the command followed by whitespace
+     */
+    private static boolean isCommand(String input, String commandName) {
+        return input.equals(commandName)
+                || input.startsWith(commandName) && Character.isWhitespace(input.charAt(commandName.length()));
+    }
+
+    /**
+     * Returns the text after a command name.
+     *
+     * @param input user input with surrounding whitespace removed
+     * @param commandName supported command name at the start of the input
+     * @return command details with surrounding whitespace removed
+     */
+    private static String getCommandDetails(String input, String commandName) {
+        return input.substring(commandName.length()).trim();
+    }
+
+    /**
+     * Prints a user-facing explanation for invalid input.
+     *
+     * @param message explanation and correction for the invalid input
+     */
+    private static void printError(String message) {
+        System.out.println(" Error: " + message);
     }
 
     /**
@@ -120,12 +161,8 @@ public class Cracker {
      * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
      */
-    private static void markTask(Task[] tasks, int taskCount, String taskNumberText) {
+    private static void markTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
         Task task = getTask(tasks, taskCount, taskNumberText);
-        if (task == null) {
-            return;
-        }
-
         task.markAsDone();
         System.out.println(" Nice! I've marked this task as done:");
         System.out.println("   " + task);
@@ -138,36 +175,35 @@ public class Cracker {
      * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
      */
-    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumberText) {
+    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
         Task task = getTask(tasks, taskCount, taskNumberText);
-        if (task == null) {
-            return;
-        }
-
         task.markAsNotDone();
         System.out.println(" OK, I've marked this task as not done yet:");
         System.out.println("   " + task);
     }
 
     /**
-     * Returns the task specified by the given task number, or {@code null} when it is invalid.
+     * Returns the task specified by the given task number.
      *
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
-     * @return the requested task, or {@code null} when the number is invalid
+     * @return the requested task
+     * @throws CrackerException if no tasks exist or the task number is invalid
      */
-    private static Task getTask(Task[] tasks, int taskCount, String taskNumberText) {
+    private static Task getTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
+        if (taskCount == 0) {
+            throw new CrackerException("There are no tasks yet. Add a task first.");
+        }
+
         try {
             int taskNumber = Integer.parseInt(taskNumberText);
             if (taskNumber < 1 || taskNumber > taskCount) {
-                System.out.println(" Please provide the number of a task in your list.");
-                return null;
+                throw new CrackerException("Enter a task number from 1 to " + taskCount + ".");
             }
             return tasks[taskNumber - 1];
         } catch (NumberFormatException e) {
-            System.out.println(" Please provide the number of a task in your list.");
-            return null;
+            throw new CrackerException("Enter a task number from 1 to " + taskCount + ".");
         }
     }
 
@@ -179,15 +215,20 @@ public class Cracker {
      * @param deadlineDetails description and due time entered by the user
      * @return the updated number of tasks
      */
-    private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails) {
-        int byIndex = deadlineDetails.indexOf(" /by ");
+    private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails) throws CrackerException {
+        int byIndex = deadlineDetails.indexOf("/by");
         if (byIndex < 0) {
-            System.out.println(" Please specify a deadline using /by.");
-            return taskCount;
+            throw new CrackerException("A deadline needs /by followed by a due time.");
         }
 
         String description = deadlineDetails.substring(0, byIndex).trim();
-        String by = deadlineDetails.substring(byIndex + " /by ".length()).trim();
+        String by = deadlineDetails.substring(byIndex + "/by".length()).trim();
+        if (description.isEmpty()) {
+            throw new CrackerException("A deadline needs a description before /by.");
+        }
+        if (by.isEmpty()) {
+            throw new CrackerException("A deadline needs a due time after /by.");
+        }
         return addTask(tasks, taskCount, new Deadline(description, by));
     }
 
@@ -199,17 +240,25 @@ public class Cracker {
      * @param eventDetails description, start time, and end time entered by the user
      * @return the updated number of tasks
      */
-    private static int addEvent(Task[] tasks, int taskCount, String eventDetails) {
-        int fromIndex = eventDetails.indexOf(" /from ");
-        int toIndex = eventDetails.indexOf(" /to ");
+    private static int addEvent(Task[] tasks, int taskCount, String eventDetails) throws CrackerException {
+        int fromIndex = eventDetails.indexOf("/from");
+        int toIndex = eventDetails.indexOf("/to");
         if (fromIndex < 0 || toIndex <= fromIndex) {
-            System.out.println(" Please specify an event using /from and /to.");
-            return taskCount;
+            throw new CrackerException("An event needs /from and /to, for example: event meeting /from 2pm /to 3pm");
         }
 
         String description = eventDetails.substring(0, fromIndex).trim();
-        String from = eventDetails.substring(fromIndex + " /from ".length(), toIndex).trim();
-        String to = eventDetails.substring(toIndex + " /to ".length()).trim();
+        String from = eventDetails.substring(fromIndex + "/from".length(), toIndex).trim();
+        String to = eventDetails.substring(toIndex + "/to".length()).trim();
+        if (description.isEmpty()) {
+            throw new CrackerException("An event needs a description before /from.");
+        }
+        if (from.isEmpty()) {
+            throw new CrackerException("An event needs a start time after /from.");
+        }
+        if (to.isEmpty()) {
+            throw new CrackerException("An event needs an end time after /to.");
+        }
         return addTask(tasks, taskCount, new Event(description, from, to));
     }
 
@@ -229,7 +278,11 @@ public class Cracker {
      * @param task task to add
      * @return the updated number of tasks
      */
-    private static int addTask(Task[] tasks, int taskCount, Task task) {
+    private static int addTask(Task[] tasks, int taskCount, Task task) throws CrackerException {
+        if (taskCount == MAX_TASKS) {
+            throw new CrackerException("Your task list is full. Remove a task before adding another one.");
+        }
+
         tasks[taskCount] = task;
         System.out.println(" Got it. I've added this task:");
         System.out.println("   " + task);

@@ -13,7 +13,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/cracker/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, use `todo DESCRIPTION`, `deadline DESCRIPTION /by DUE_TIME`, or `event DESCRIPTION /from START_TIME /to END_TIME` to add tasks, use `list` to show all tasks, use `mark TASK_NUMBER` or `unmark TASK_NUMBER` to update a task's completion status, and enter `bye` to exit. Dates and times are stored as the text you enter:
+1. After that, locate the `src/main/java/cracker/Cracker.java` file, right-click it, and choose `Run Cracker.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, use `todo DESCRIPTION`, `deadline DESCRIPTION /by DUE_TIME`, or `event DESCRIPTION /from START_TIME /to END_TIME` to add tasks, use `list` to show all tasks, use `mark TASK_NUMBER` or `unmark TASK_NUMBER` to update a task's completion status, use `delete TASK_NUMBER` to remove a task, and enter `bye` to exit. Dates and times are stored as the text you enter:
    ```
    ____________________________________________________________
     ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
@@ -53,6 +53,6 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    ____________________________________________________________
    ```
 
-Cracker keeps up to 100 tasks in memory while it is running. The tasks are not saved after the program exits.
+Cracker keeps tasks in memory while it is running. The tasks are not saved after the program exits.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.

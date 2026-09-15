@@ -36,12 +36,12 @@ Add each test case using this structure:
 
 **Aim:** Verifies that to-dos, deadlines, and events are stored as tasks and displayed with their type-specific details.
 
-**Setup/assumptions:** The application starts with an empty in-memory task list. Java 25 is available.
+**Setup/assumptions:** Java 25 is available. The command removes any saved data so the test starts empty.
 
 **Command:**
 
 ```text
-javac -d out src/main/java/cracker/*.java; @'
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
 todo read book
 deadline return book /by June 6th
 event project meeting /from Aug 6th 2pm /to 4pm
@@ -89,6 +89,112 @@ ____________________________________________________________
  1.[T][X] read book
  2.[D][ ] return book (by: June 6th)
  3.[E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+____________________________________________________________
+ Bye. Hope to see you again soon!
+____________________________________________________________
+```
+
+**Variable output rule:** The six ASCII-art banner lines represented by `<Cracker banner>` are not compared because their rendering depends on the terminal character encoding. Every other line is compared exactly.
+
+### UI-002 — Save tasks and restore them on the next run
+
+**Aim:** Verifies that task additions and status changes are saved to `data/duke.txt`, and that the saved task is loaded on the next startup.
+
+**Setup/assumptions:** Java 25 is available. The command removes any saved data and its folder before the first run.
+
+**Command:**
+
+```text
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
+deadline return book /by June 6th
+mark 1
+bye
+'@ | java -cp out cracker.Cracker; @'
+list
+bye
+'@ | java -cp out cracker.Cracker
+```
+
+**Console input:**
+
+```text
+First run:
+deadline return book /by June 6th
+mark 1
+bye
+
+Second run:
+list
+bye
+```
+
+**Expected output:**
+
+```text
+First run:
+____________________________________________________________
+<Cracker banner>
+Hello! I'm Cracker.
+What can I do for you?
+____________________________________________________________
+ Got it. I've added this task:
+   [D][ ] return book (by: June 6th)
+ Now you have 1 tasks in the list.
+____________________________________________________________
+ Nice! I've marked this task as done:
+   [D][X] return book (by: June 6th)
+____________________________________________________________
+ Bye. Hope to see you again soon!
+____________________________________________________________
+
+Second run:
+____________________________________________________________
+<Cracker banner>
+Hello! I'm Cracker.
+What can I do for you?
+____________________________________________________________
+ Here are the tasks in your list:
+ 1.[D][X] return book (by: June 6th)
+____________________________________________________________
+ Bye. Hope to see you again soon!
+____________________________________________________________
+```
+
+**Variable output rule:** The six ASCII-art banner lines represented by `<Cracker banner>` are not compared because their rendering depends on the terminal character encoding. Every other line is compared exactly.
+
+### UI-003 — Ignore corrupted saved task data
+
+**Aim:** Verifies that malformed saved lines do not prevent the chatbot from starting and that valid saved tasks still load.
+
+**Setup/assumptions:** Java 25 is available. The command creates a data file containing one invalid line and one valid to-do task.
+
+**Command:**
+
+```text
+New-Item -ItemType Directory -Force data | Out-Null; Set-Content -Encoding utf8 data/duke.txt @('not a task', 'T | 1 | read book'); javac -d out src/main/java/cracker/*.java; @'
+list
+bye
+'@ | java -cp out cracker.Cracker
+```
+
+**Console input:**
+
+```text
+list
+bye
+```
+
+**Expected output:**
+
+```text
+____________________________________________________________
+<Cracker banner>
+Hello! I'm Cracker.
+What can I do for you?
+____________________________________________________________
+ Some saved tasks were corrupted and have been ignored.
+ Here are the tasks in your list:
+ 1.[T][X] read book
 ____________________________________________________________
  Bye. Hope to see you again soon!
 ____________________________________________________________

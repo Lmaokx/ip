@@ -51,14 +51,15 @@ public class Cracker {
      */
     private static void runCommandLoop(Scanner scanner) {
         Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        Storage storage = new Storage();
+        int taskCount = storage.loadTasks(tasks);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
             if (command.equals("bye")) {
                 break;
             }
 
-            taskCount = handleCommand(command, tasks, taskCount);
+            taskCount = handleCommand(command, tasks, taskCount, storage);
             System.out.println(DIVIDER);
         }
 
@@ -71,29 +72,30 @@ public class Cracker {
      * @param command command entered by the user
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
+     * @param storage storage used to save changed tasks
      * @return the updated number of tasks
      */
-    private static int handleCommand(String command, Task[] tasks, int taskCount) {
+    private static int handleCommand(String command, Task[] tasks, int taskCount, Storage storage) {
         if (command.equals("list")) {
             listTasks(tasks, taskCount);
             return taskCount;
         }
         if (command.startsWith("mark ")) {
-            markTask(tasks, taskCount, command.substring("mark ".length()).trim());
+            markTask(tasks, taskCount, command.substring("mark ".length()).trim(), storage);
             return taskCount;
         }
         if (command.startsWith("unmark ")) {
-            unmarkTask(tasks, taskCount, command.substring("unmark ".length()).trim());
+            unmarkTask(tasks, taskCount, command.substring("unmark ".length()).trim(), storage);
             return taskCount;
         }
         if (command.startsWith("todo ") && taskCount < MAX_TASKS) {
-            return addTask(tasks, taskCount, new Todo(command.substring("todo ".length()).trim()));
+            return addTask(tasks, taskCount, new Todo(command.substring("todo ".length()).trim()), storage);
         }
         if (command.startsWith("deadline ") && taskCount < MAX_TASKS) {
-            return addDeadline(tasks, taskCount, command.substring("deadline ".length()).trim());
+            return addDeadline(tasks, taskCount, command.substring("deadline ".length()).trim(), storage);
         }
         if (command.startsWith("event ") && taskCount < MAX_TASKS) {
-            return addEvent(tasks, taskCount, command.substring("event ".length()).trim());
+            return addEvent(tasks, taskCount, command.substring("event ".length()).trim(), storage);
         }
 
         System.out.println(" Don't understand the command ... yet.");
@@ -119,14 +121,16 @@ public class Cracker {
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void markTask(Task[] tasks, int taskCount, String taskNumberText) {
+    private static void markTask(Task[] tasks, int taskCount, String taskNumberText, Storage storage) {
         Task task = getTask(tasks, taskCount, taskNumberText);
         if (task == null) {
             return;
         }
 
         task.markAsDone();
+        storage.saveTasks(tasks, taskCount);
         System.out.println(" Nice! I've marked this task as done:");
         System.out.println("   " + task);
     }
@@ -137,14 +141,16 @@ public class Cracker {
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumberText) {
+    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumberText, Storage storage) {
         Task task = getTask(tasks, taskCount, taskNumberText);
         if (task == null) {
             return;
         }
 
         task.markAsNotDone();
+        storage.saveTasks(tasks, taskCount);
         System.out.println(" OK, I've marked this task as not done yet:");
         System.out.println("   " + task);
     }
@@ -177,9 +183,10 @@ public class Cracker {
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param deadlineDetails description and due time entered by the user
+     * @param storage storage used to save changed tasks
      * @return the updated number of tasks
      */
-    private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails) {
+    private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails, Storage storage) {
         int byIndex = deadlineDetails.indexOf(" /by ");
         if (byIndex < 0) {
             System.out.println(" Please specify a deadline using /by.");
@@ -188,7 +195,7 @@ public class Cracker {
 
         String description = deadlineDetails.substring(0, byIndex).trim();
         String by = deadlineDetails.substring(byIndex + " /by ".length()).trim();
-        return addTask(tasks, taskCount, new Deadline(description, by));
+        return addTask(tasks, taskCount, new Deadline(description, by), storage);
     }
 
     /**
@@ -197,9 +204,10 @@ public class Cracker {
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param eventDetails description, start time, and end time entered by the user
+     * @param storage storage used to save changed tasks
      * @return the updated number of tasks
      */
-    private static int addEvent(Task[] tasks, int taskCount, String eventDetails) {
+    private static int addEvent(Task[] tasks, int taskCount, String eventDetails, Storage storage) {
         int fromIndex = eventDetails.indexOf(" /from ");
         int toIndex = eventDetails.indexOf(" /to ");
         if (fromIndex < 0 || toIndex <= fromIndex) {
@@ -210,7 +218,7 @@ public class Cracker {
         String description = eventDetails.substring(0, fromIndex).trim();
         String from = eventDetails.substring(fromIndex + " /from ".length(), toIndex).trim();
         String to = eventDetails.substring(toIndex + " /to ".length()).trim();
-        return addTask(tasks, taskCount, new Event(description, from, to));
+        return addTask(tasks, taskCount, new Event(description, from, to), storage);
     }
 
     /**
@@ -227,13 +235,15 @@ public class Cracker {
      * @param tasks tasks stored by the chatbot
      * @param taskCount number of stored tasks
      * @param task task to add
+     * @param storage storage used to save changed tasks
      * @return the updated number of tasks
      */
-    private static int addTask(Task[] tasks, int taskCount, Task task) {
+    private static int addTask(Task[] tasks, int taskCount, Task task, Storage storage) {
         tasks[taskCount] = task;
+        int updatedTaskCount = taskCount + 1;
+        storage.saveTasks(tasks, updatedTaskCount);
         System.out.println(" Got it. I've added this task:");
         System.out.println("   " + task);
-        int updatedTaskCount = taskCount + 1;
         System.out.println(" Now you have " + updatedTaskCount + " tasks in the list.");
         return updatedTaskCount;
     }

@@ -41,7 +41,7 @@ Add each test case using this structure:
 **Command:**
 
 ```text
-javac -d out src/main/java/cracker/*.java; @'
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
 todo read book
 deadline return book /by June 6th
 event project meeting /from Aug 6th 2pm /to 4pm
@@ -96,6 +96,73 @@ ____________________________________________________________
 
 **Variable output rule:** The six ASCII-art banner lines represented by `<Cracker banner>` are not compared because their rendering depends on the terminal character encoding. Every other line is compared exactly.
 
+### UI-004 — Save tasks and restore them on the next run
+
+**Aim:** Verifies that task additions and status changes are saved to `data/duke.txt` and restored at startup.
+
+**Setup/assumptions:** Java 25 is available. The command removes saved data before the first run.
+
+**Command:**
+
+```text
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
+deadline return book /by June 6th
+mark 1
+bye
+'@ | java -cp out cracker.Cracker; @'
+list
+bye
+'@ | java -cp out cracker.Cracker
+```
+
+**Console input:**
+
+```text
+First run: deadline return book /by June 6th; mark 1; bye
+Second run: list; bye
+```
+
+**Expected output:**
+
+```text
+First run adds and marks [D][X] return book (by: June 6th).
+Second run lists: 1.[D][X] return book (by: June 6th)
+```
+
+**Variable output rule:** The banner is not compared because its rendering depends on terminal character encoding. All task output is compared exactly.
+
+### UI-005 — Ignore corrupted saved task data
+
+**Aim:** Verifies that malformed saved lines do not prevent startup and valid saved tasks still load.
+
+**Setup/assumptions:** Java 25 is available. The command creates one invalid line and one valid to-do task.
+
+**Command:**
+
+```text
+New-Item -ItemType Directory -Force data | Out-Null; Set-Content -Encoding utf8 data/duke.txt @('not a task', 'T | 1 | read book'); javac -d out src/main/java/cracker/*.java; @'
+list
+bye
+'@ | java -cp out cracker.Cracker
+```
+
+**Console input:**
+
+```text
+list
+bye
+```
+
+**Expected output:**
+
+```text
+ Some saved tasks were corrupted and have been ignored.
+ Here are the tasks in your list:
+ 1.[T][X] read book
+```
+
+**Variable output rule:** The banner is not compared because its rendering depends on terminal character encoding. Every other line is compared exactly.
+
 ### UI-002 — Explain invalid commands and missing task details
 
 **Aim:** Verifies that malformed commands produce specific correction guidance without adding invalid tasks.
@@ -105,7 +172,7 @@ ____________________________________________________________
 **Command:**
 
 ```text
-javac -d out src/main/java/cracker/*.java; @'
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
 todo
 deadline submit report /by
 event /from 2pm /to 3pm
@@ -163,7 +230,7 @@ ____________________________________________________________
 **Command:**
 
 ```text
-javac -d out src/main/java/cracker/*.java; @'
+Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue; javac -d out src/main/java/cracker/*.java; @'
 todo read book
 deadline return book /by June 6th
 event project meeting /from Aug 6th 2pm /to 4pm

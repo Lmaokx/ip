@@ -50,6 +50,8 @@ public class Cracker {
      */
     private static void runCommandLoop(Scanner scanner) {
         List<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage();
+        storage.loadTasks(tasks);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
             if (command.equals("bye")) {
@@ -57,7 +59,7 @@ public class Cracker {
             }
 
             try {
-                handleCommand(command, tasks);
+                handleCommand(command, tasks, storage);
             } catch (CrackerException e) {
                 printError(e.getMessage());
             }
@@ -72,23 +74,24 @@ public class Cracker {
      *
      * @param command command entered by the user
      * @param tasks tasks stored by the chatbot
+     * @param storage storage used to save changed tasks
      */
-    private static void handleCommand(String command, List<Task> tasks) throws CrackerException {
+    private static void handleCommand(String command, List<Task> tasks, Storage storage) throws CrackerException {
         String trimmedCommand = command.trim();
         if (trimmedCommand.equals("list")) {
             listTasks(tasks);
             return;
         }
         if (isCommand(trimmedCommand, "mark")) {
-            markTask(tasks, getCommandDetails(trimmedCommand, "mark"));
+            markTask(tasks, getCommandDetails(trimmedCommand, "mark"), storage);
             return;
         }
         if (isCommand(trimmedCommand, "unmark")) {
-            unmarkTask(tasks, getCommandDetails(trimmedCommand, "unmark"));
+            unmarkTask(tasks, getCommandDetails(trimmedCommand, "unmark"), storage);
             return;
         }
         if (isCommand(trimmedCommand, "delete")) {
-            deleteTask(tasks, getCommandDetails(trimmedCommand, "delete"));
+            deleteTask(tasks, getCommandDetails(trimmedCommand, "delete"), storage);
             return;
         }
         if (isCommand(trimmedCommand, "todo")) {
@@ -96,15 +99,15 @@ public class Cracker {
             if (description.isEmpty()) {
                 throw new CrackerException("A to-do needs a description. Try: todo buy groceries");
             }
-            addTask(tasks, new Todo(description));
+            addTask(tasks, new Todo(description), storage);
             return;
         }
         if (isCommand(trimmedCommand, "deadline")) {
-            addDeadline(tasks, getCommandDetails(trimmedCommand, "deadline"));
+            addDeadline(tasks, getCommandDetails(trimmedCommand, "deadline"), storage);
             return;
         }
         if (isCommand(trimmedCommand, "event")) {
-            addEvent(tasks, getCommandDetails(trimmedCommand, "event"));
+            addEvent(tasks, getCommandDetails(trimmedCommand, "event"), storage);
             return;
         }
 
@@ -161,10 +164,12 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param taskNumberText task number entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void markTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+    private static void markTask(List<Task> tasks, String taskNumberText, Storage storage) throws CrackerException {
         Task task = getTask(tasks, taskNumberText);
         task.markAsDone();
+        storage.saveTasks(tasks);
         System.out.println(" Nice! I've marked this task as done:");
         System.out.println("   " + task);
     }
@@ -174,10 +179,12 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param taskNumberText task number entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void unmarkTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+    private static void unmarkTask(List<Task> tasks, String taskNumberText, Storage storage) throws CrackerException {
         Task task = getTask(tasks, taskNumberText);
         task.markAsNotDone();
+        storage.saveTasks(tasks);
         System.out.println(" OK, I've marked this task as not done yet:");
         System.out.println("   " + task);
     }
@@ -187,11 +194,13 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param taskNumberText task number entered by the user
+     * @param storage storage used to save changed tasks
      * @throws CrackerException if no tasks exist or the task number is invalid
      */
-    private static void deleteTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+    private static void deleteTask(List<Task> tasks, String taskNumberText, Storage storage) throws CrackerException {
         Task task = getTask(tasks, taskNumberText);
         tasks.remove(task);
+        storage.saveTasks(tasks);
         System.out.println(" Noted. I've removed this task:");
         System.out.println("   " + task);
         System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
@@ -226,8 +235,9 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param deadlineDetails description and due time entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void addDeadline(List<Task> tasks, String deadlineDetails) throws CrackerException {
+    private static void addDeadline(List<Task> tasks, String deadlineDetails, Storage storage) throws CrackerException {
         int byIndex = deadlineDetails.indexOf("/by");
         if (byIndex < 0) {
             throw new CrackerException("A deadline needs /by followed by a due time.");
@@ -241,7 +251,7 @@ public class Cracker {
         if (by.isEmpty()) {
             throw new CrackerException("A deadline needs a due time after /by.");
         }
-        addTask(tasks, new Deadline(description, by));
+        addTask(tasks, new Deadline(description, by), storage);
     }
 
     /**
@@ -249,8 +259,9 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param eventDetails description, start time, and end time entered by the user
+     * @param storage storage used to save changed tasks
      */
-    private static void addEvent(List<Task> tasks, String eventDetails) throws CrackerException {
+    private static void addEvent(List<Task> tasks, String eventDetails, Storage storage) throws CrackerException {
         int fromIndex = eventDetails.indexOf("/from");
         int toIndex = eventDetails.indexOf("/to");
         if (fromIndex < 0 || toIndex <= fromIndex) {
@@ -269,7 +280,7 @@ public class Cracker {
         if (to.isEmpty()) {
             throw new CrackerException("An event needs an end time after /to.");
         }
-        addTask(tasks, new Event(description, from, to));
+        addTask(tasks, new Event(description, from, to), storage);
     }
 
     /**
@@ -285,9 +296,11 @@ public class Cracker {
      *
      * @param tasks tasks stored by the chatbot
      * @param task task to add
+     * @param storage storage used to save changed tasks
      */
-    private static void addTask(List<Task> tasks, Task task) {
+    private static void addTask(List<Task> tasks, Task task, Storage storage) {
         tasks.add(task);
+        storage.saveTasks(tasks);
         System.out.println(" Got it. I've added this task:");
         System.out.println("   " + task);
         System.out.println(" Now you have " + tasks.size() + " tasks in the list.");

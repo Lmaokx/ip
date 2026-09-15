@@ -1,14 +1,13 @@
 package cracker;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
  * Entry point for the Cracker chatbot application.
  */
 public class Cracker {
-    /** Maximum number of tasks stored during one run of the application. */
-    private static final int MAX_TASKS = 100;
-
     /** Divider printed between chatbot responses. */
     private static final String DIVIDER = "____________________________________________________________";
 
@@ -50,8 +49,7 @@ public class Cracker {
      * @param scanner scanner used to read commands
      */
     private static void runCommandLoop(Scanner scanner) {
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        List<Task> tasks = new ArrayList<>();
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
             if (command.equals("bye")) {
@@ -59,7 +57,7 @@ public class Cracker {
             }
 
             try {
-                taskCount = handleCommand(command, tasks, taskCount);
+                handleCommand(command, tasks);
             } catch (CrackerException e) {
                 printError(e.getMessage());
             }
@@ -70,39 +68,40 @@ public class Cracker {
     }
 
     /**
-     * Handles one command and returns the resulting task count.
+     * Handles one command.
      *
      * @param command command entered by the user
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
-     * @return the updated number of tasks
      */
-    private static int handleCommand(String command, Task[] tasks, int taskCount) throws CrackerException {
+    private static void handleCommand(String command, List<Task> tasks) throws CrackerException {
         String trimmedCommand = command.trim();
         if (trimmedCommand.equals("list")) {
-            listTasks(tasks, taskCount);
-            return taskCount;
+            listTasks(tasks);
+            return;
         }
         if (isCommand(trimmedCommand, "mark")) {
-            markTask(tasks, taskCount, getCommandDetails(trimmedCommand, "mark"));
-            return taskCount;
+            markTask(tasks, getCommandDetails(trimmedCommand, "mark"));
+            return;
         }
         if (isCommand(trimmedCommand, "unmark")) {
-            unmarkTask(tasks, taskCount, getCommandDetails(trimmedCommand, "unmark"));
-            return taskCount;
+            unmarkTask(tasks, getCommandDetails(trimmedCommand, "unmark"));
+            return;
         }
         if (isCommand(trimmedCommand, "todo")) {
             String description = getCommandDetails(trimmedCommand, "todo");
             if (description.isEmpty()) {
                 throw new CrackerException("A to-do needs a description. Try: todo buy groceries");
             }
-            return addTask(tasks, taskCount, new Todo(description));
+            addTask(tasks, new Todo(description));
+            return;
         }
         if (isCommand(trimmedCommand, "deadline")) {
-            return addDeadline(tasks, taskCount, getCommandDetails(trimmedCommand, "deadline"));
+            addDeadline(tasks, getCommandDetails(trimmedCommand, "deadline"));
+            return;
         }
         if (isCommand(trimmedCommand, "event")) {
-            return addEvent(tasks, taskCount, getCommandDetails(trimmedCommand, "event"));
+            addEvent(tasks, getCommandDetails(trimmedCommand, "event"));
+            return;
         }
 
         throw new CrackerException("I don't recognize that command. Use todo, deadline, event, list, mark, unmark, "
@@ -145,12 +144,11 @@ public class Cracker {
      * Lists all tasks stored by the chatbot.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      */
-    private static void listTasks(Task[] tasks, int taskCount) {
+    private static void listTasks(List<Task> tasks) {
         System.out.println(" Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println(" " + (i + 1) + "." + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println(" " + (i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -158,11 +156,10 @@ public class Cracker {
      * Marks the specified task as completed.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
      */
-    private static void markTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
-        Task task = getTask(tasks, taskCount, taskNumberText);
+    private static void markTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+        Task task = getTask(tasks, taskNumberText);
         task.markAsDone();
         System.out.println(" Nice! I've marked this task as done:");
         System.out.println("   " + task);
@@ -172,11 +169,10 @@ public class Cracker {
      * Marks the specified task as incomplete.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
      */
-    private static void unmarkTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
-        Task task = getTask(tasks, taskCount, taskNumberText);
+    private static void unmarkTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+        Task task = getTask(tasks, taskNumberText);
         task.markAsNotDone();
         System.out.println(" OK, I've marked this task as not done yet:");
         System.out.println("   " + task);
@@ -186,24 +182,23 @@ public class Cracker {
      * Returns the task specified by the given task number.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param taskNumberText task number entered by the user
      * @return the requested task
      * @throws CrackerException if no tasks exist or the task number is invalid
      */
-    private static Task getTask(Task[] tasks, int taskCount, String taskNumberText) throws CrackerException {
-        if (taskCount == 0) {
+    private static Task getTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+        if (tasks.isEmpty()) {
             throw new CrackerException("There are no tasks yet. Add a task first.");
         }
 
         try {
             int taskNumber = Integer.parseInt(taskNumberText);
-            if (taskNumber < 1 || taskNumber > taskCount) {
-                throw new CrackerException("Enter a task number from 1 to " + taskCount + ".");
+            if (taskNumber < 1 || taskNumber > tasks.size()) {
+                throw new CrackerException("Enter a task number from 1 to " + tasks.size() + ".");
             }
-            return tasks[taskNumber - 1];
+            return tasks.get(taskNumber - 1);
         } catch (NumberFormatException e) {
-            throw new CrackerException("Enter a task number from 1 to " + taskCount + ".");
+            throw new CrackerException("Enter a task number from 1 to " + tasks.size() + ".");
         }
     }
 
@@ -211,11 +206,9 @@ public class Cracker {
      * Creates and adds a deadline task from its command details.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param deadlineDetails description and due time entered by the user
-     * @return the updated number of tasks
      */
-    private static int addDeadline(Task[] tasks, int taskCount, String deadlineDetails) throws CrackerException {
+    private static void addDeadline(List<Task> tasks, String deadlineDetails) throws CrackerException {
         int byIndex = deadlineDetails.indexOf("/by");
         if (byIndex < 0) {
             throw new CrackerException("A deadline needs /by followed by a due time.");
@@ -229,18 +222,16 @@ public class Cracker {
         if (by.isEmpty()) {
             throw new CrackerException("A deadline needs a due time after /by.");
         }
-        return addTask(tasks, taskCount, new Deadline(description, by));
+        addTask(tasks, new Deadline(description, by));
     }
 
     /**
      * Creates and adds an event task from its command details.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param eventDetails description, start time, and end time entered by the user
-     * @return the updated number of tasks
      */
-    private static int addEvent(Task[] tasks, int taskCount, String eventDetails) throws CrackerException {
+    private static void addEvent(List<Task> tasks, String eventDetails) throws CrackerException {
         int fromIndex = eventDetails.indexOf("/from");
         int toIndex = eventDetails.indexOf("/to");
         if (fromIndex < 0 || toIndex <= fromIndex) {
@@ -259,7 +250,7 @@ public class Cracker {
         if (to.isEmpty()) {
             throw new CrackerException("An event needs an end time after /to.");
         }
-        return addTask(tasks, taskCount, new Event(description, from, to));
+        addTask(tasks, new Event(description, from, to));
     }
 
     /**
@@ -274,20 +265,12 @@ public class Cracker {
      * Adds a task to the list and prints its confirmation.
      *
      * @param tasks tasks stored by the chatbot
-     * @param taskCount number of stored tasks
      * @param task task to add
-     * @return the updated number of tasks
      */
-    private static int addTask(Task[] tasks, int taskCount, Task task) throws CrackerException {
-        if (taskCount == MAX_TASKS) {
-            throw new CrackerException("Your task list is full. Remove a task before adding another one.");
-        }
-
-        tasks[taskCount] = task;
+    private static void addTask(List<Task> tasks, Task task) {
+        tasks.add(task);
         System.out.println(" Got it. I've added this task:");
         System.out.println("   " + task);
-        int updatedTaskCount = taskCount + 1;
-        System.out.println(" Now you have " + updatedTaskCount + " tasks in the list.");
-        return updatedTaskCount;
+        System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
     }
 }

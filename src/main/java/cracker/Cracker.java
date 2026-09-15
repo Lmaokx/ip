@@ -87,6 +87,10 @@ public class Cracker {
             unmarkTask(tasks, getCommandDetails(trimmedCommand, "unmark"));
             return;
         }
+        if (isCommand(trimmedCommand, "delete")) {
+            deleteTask(tasks, getCommandDetails(trimmedCommand, "delete"));
+            return;
+        }
         if (isCommand(trimmedCommand, "todo")) {
             String description = getCommandDetails(trimmedCommand, "todo");
             if (description.isEmpty()) {
@@ -105,7 +109,7 @@ public class Cracker {
         }
 
         throw new CrackerException("I don't recognize that command. Use todo, deadline, event, list, mark, unmark, "
-                + "or bye.");
+                + "delete, or bye.");
     }
 
     /**
@@ -176,6 +180,21 @@ public class Cracker {
         task.markAsNotDone();
         System.out.println(" OK, I've marked this task as not done yet:");
         System.out.println("   " + task);
+    }
+
+    /**
+     * Removes the specified task from the list.
+     *
+     * @param tasks tasks stored by the chatbot
+     * @param taskNumberText task number entered by the user
+     * @throws CrackerException if no tasks exist or the task number is invalid
+     */
+    private static void deleteTask(List<Task> tasks, String taskNumberText) throws CrackerException {
+        Task task = getTask(tasks, taskNumberText);
+        tasks.remove(task);
+        System.out.println(" Noted. I've removed this task:");
+        System.out.println("   " + task);
+        System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
     }
 
     /**

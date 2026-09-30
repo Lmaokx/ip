@@ -1,6 +1,7 @@
 package cracker;
 
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Handles all console interactions with the user.
@@ -17,6 +18,16 @@ public class Ui {
             + "╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║\n"
             + " ╚═════╝╚═╝  ╚═╝╚═╝  ╚════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═════╝\n";
 
+    /** Scanner used to read commands entered in the console. */
+    private final Scanner scanner;
+
+    /**
+     * Creates a user interface that reads commands from the standard input stream.
+     */
+    public Ui() {
+        scanner = new Scanner(System.in);
+    }
+
     /** Shows the chatbot greeting. */
     public void showGreeting() {
         showDivider();
@@ -29,6 +40,18 @@ public class Ui {
     /** Shows a divider between chatbot responses. */
     public void showDivider() {
         System.out.println(DIVIDER);
+    }
+
+    /**
+     * Reads the next complete command entered by the user.
+     *
+     * @return command entered by the user, or {@code bye} when the input stream ends
+     */
+    public String readCommand() {
+        if (!scanner.hasNextLine()) {
+            return "bye";
+        }
+        return scanner.nextLine();
     }
 
     /**
@@ -99,6 +122,5 @@ public class Ui {
     /** Shows the chatbot farewell. */
     public void showFarewell() {
         System.out.println(" Bye. Hope to see you again soon!");
-        showDivider();
     }
 }

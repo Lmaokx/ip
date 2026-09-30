@@ -23,6 +23,9 @@ public final class Parser {
         if (commandName.equals("bye")) {
             return new ExitCommand();
         }
+        if (hasCommandName(commandName, "find")) {
+            return new FindCommand(getDetails(commandName, "find"));
+        }
         if (hasCommandName(commandName, "mark")) {
             return new MarkCommand(getDetails(commandName, "mark"));
         }
@@ -41,8 +44,8 @@ public final class Parser {
         if (hasCommandName(commandName, "event")) {
             return parseEvent(getDetails(commandName, "event"));
         }
-        throw new CrackerException("I don't recognize that command. Use todo, deadline, event, list, mark, unmark, "
-                + "delete, or bye.");
+        throw new CrackerException("I don't recognize that command. Use todo, deadline, event, find, list, mark, "
+                + "unmark, delete, or bye.");
     }
 
     /**

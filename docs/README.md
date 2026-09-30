@@ -1,74 +1,123 @@
 # Cracker User Guide
 
-// Product screenshot goes here
+Cracker is a command-line task manager that helps you keep track of to-dos,
+deadlines, and events. Your tasks are saved automatically, so they are available
+the next time you start the application.
 
-Cracker is a command-line chatbot. Running `Cracker.main()` displays its banner and greeting. Use `todo`, `deadline`, or `event` to add a task, enter `list` to display saved tasks, enter `mark TASK_NUMBER` to mark a task as done, enter `unmark TASK_NUMBER` to mark a task as not done, and enter `bye` to exit. Cracker stores up to 100 tasks in memory for the current run only.
+## Quick start
 
-```
-____________________________________________________________
- ██████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗
-██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
-██║     ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝
-██║     ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
-╚██████╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
- ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-Hello! I'm Cracker.
-What can I do for you?
-____________________________________________________________
-todo read book
- Got it. I've added this task:
-   [T][ ] read book
- Now you have 1 tasks in the list.
-____________________________________________________________
-deadline return book /by June 6th
- Got it. I've added this task:
-   [D][ ] return book (by: June 6th)
- Now you have 2 tasks in the list.
-____________________________________________________________
-list
- Here are the tasks in your list:
- 1.[T][ ] read book
- 2.[D][ ] return book (by: June 6th)
-____________________________________________________________
-mark 2
- Nice! I've marked this task as done:
-   [D][X] return book (by: June 6th)
-____________________________________________________________
-unmark 2
- OK, I've marked this task as not done yet:
-   [D][ ] return book (by: June 6th)
-____________________________________________________________
-bye
- Bye. Hope to see you again soon!
-____________________________________________________________
-```
+1. Ensure that Java 25 is installed.
+1. Build the application from the project root:
 
-## Adding tasks
+   ```text
+   .\gradlew.bat shadowJar
+   ```
 
-Use one of the following commands to add a task. Dates and times are preserved as text; they do not need a particular format.
+1. Run the generated JAR:
 
-* `todo DESCRIPTION` adds a task without a date or time. Example: `todo read book`
-* `deadline DESCRIPTION /by DUE_TIME` adds a task due by a time. Example: `deadline return book /by Sunday`
-* `event DESCRIPTION /from START_TIME /to END_TIME` adds a task with a time range. Example: `event project meeting /from Mon 2pm /to 4pm`
+   ```text
+   java -jar build/libs/cracker.jar
+   ```
 
-```
- Got it. I've added this task:
-   [T][ ] read book
- Now you have 1 tasks in the list.
-```
+1. Enter a command, then press Enter. For example:
 
-## Listing tasks
+   ```text
+   todo read book
+   ```
 
-Enter `list` to display every task that has been added during the current run, numbered from 1. A completed task is shown with `[X]`; an incomplete task is shown with `[ ]`. Each task begins with `[T]`, `[D]`, or `[E]` to identify its type.
+1. Enter `bye` to exit.
 
-## Marking tasks as done
+## Features
 
-Enter `mark TASK_NUMBER` to mark the numbered task as done. For example, `mark 2` marks the second task in the list.
+### Add a to-do: `todo`
 
-## Marking tasks as not done
+Adds a task without a date or time.
 
-Enter `unmark TASK_NUMBER` to reverse a task's done status. For example, `unmark 2` marks the second task as not done.
+**Format:** `todo DESCRIPTION`
 
-## Exiting
+**Example:** `todo read book`
 
-Enter `bye` to end the program. Tasks are not saved to disk, so they will not be available the next time Cracker runs.
+### Add a deadline: `deadline`
+
+Adds a task with a due time. Cracker preserves the due time as the text you
+enter, so you can use any clear format.
+
+**Format:** `deadline DESCRIPTION /by DUE_TIME`
+
+**Example:** `deadline return book /by Sunday`
+
+### Add an event: `event`
+
+Adds a task with a start and end time. Times are stored as the text you enter.
+
+**Format:** `event DESCRIPTION /from START_TIME /to END_TIME`
+
+**Example:** `event project meeting /from Mon 2pm /to 4pm`
+
+### List tasks: `list`
+
+Displays every saved task. Tasks are numbered starting from 1. `[X]` marks a
+completed task and `[ ]` marks an incomplete task; `[T]`, `[D]`, and `[E]`
+identify to-dos, deadlines, and events respectively.
+
+**Format:** `list`
+
+### Mark a task as done: `mark`
+
+Marks the specified task as completed.
+
+**Format:** `mark TASK_NUMBER`
+
+**Example:** `mark 2`
+
+### Mark a task as not done: `unmark`
+
+Changes a completed task back to incomplete.
+
+**Format:** `unmark TASK_NUMBER`
+
+**Example:** `unmark 2`
+
+### Delete a task: `delete`
+
+Removes the specified task. The remaining tasks are renumbered.
+
+**Format:** `delete TASK_NUMBER`
+
+**Example:** `delete 3`
+
+### Find tasks: `find`
+
+Shows tasks whose descriptions contain the given keyword. Searches are
+case-insensitive.
+
+**Format:** `find KEYWORD`
+
+**Example:** `find book`
+
+### Exit Cracker: `bye`
+
+Ends the application. Tasks are already saved when you add, mark, unmark, or
+delete them.
+
+**Format:** `bye`
+
+## Saving data
+
+Cracker saves tasks to `data/duke.txt` relative to the directory where you run
+the application. It reloads this file on startup. If a saved line is corrupted,
+Cracker ignores that line and continues loading the remaining valid tasks.
+
+## Command summary
+
+| Command | Purpose |
+| --- | --- |
+| `todo DESCRIPTION` | Add a to-do task. |
+| `deadline DESCRIPTION /by DUE_TIME` | Add a deadline. |
+| `event DESCRIPTION /from START_TIME /to END_TIME` | Add an event. |
+| `list` | Display all tasks. |
+| `mark TASK_NUMBER` | Mark a task as done. |
+| `unmark TASK_NUMBER` | Mark a task as not done. |
+| `delete TASK_NUMBER` | Delete a task. |
+| `find KEYWORD` | Find tasks by description. |
+| `bye` | Exit the application. |
